@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customer Statement</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
+    <style>
+        body {
+            background-color: #f4f4f9;
+        }
+        .container {
+            margin: 50px auto;
+            max-width: 600px;
+            text-align: center;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .logo {
+            max-width: 150px;
+            margin: 0 auto 20px auto;
+        }
+        .error {
+            color: red;
+            margin-top: 10px;
+        }
+        .statement {
+            margin-top: 20px;
+            text-align: left;
+        }
+        h3 {
+            margin-bottom: 10px;
+            color: #363636;
+        }
+    </style>
+    <script>
+        async function fetchStatement() {
+            const accountId = document.getElementById('account-id').value;
+            const token = localStorage.getItem('token');
+
+            if (!accountId) {
+                alert('Please enter an account ID');
+                return;
+            }
+
+            try {
+                const response = await fetch(`http://localhost:8001/customerStatement.php?account_id=${accountId}`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    const statementDiv = document.getElementById('statement');
+                    statementDiv.innerHTML = '<h3>Transaction History</h3>';
+                    data.forEach(transaction => {
+                        const transactionDiv = `
+                            <p>
+                                <strong>Transaction ID:</strong> ${transaction.transaction_id}<br>
+                                <strong>Amount:</strong> ${transaction.amount}<br>
+                                <strong>Type:</strong> ${transaction.transaction_type}<br>
+                                <strong>Date:</strong> ${transaction.date}
+                            </p><hr>`;
+                        statementDiv.innerHTML += transactionDiv;
+                    });
+                } else {
+                    document.getElementById('error').textContent = data.message || 'Error fetching statement';
+                }
+            } catch (error) {
+                console.error('Error fetching statement:', error);
+                document.getElementById('error').textContent = 'An unexpected error occurred.';
+            }
+        }
+    </script>
+</head>
+<body>
+    <div class="container">
+        <!-- Logo Section -->
+        <img src="logo.png" alt="Bank API Logo" class="logo">
+
+        <!-- Title -->
+        <h1 class="title">Customer Statement</h1>
+
+        <!-- Input Section -->
+        <div>
+            <label for="account-id" class="label">Account ID</label>
+            <input type="text" id="account-id" class="input" placeholder="Enter your account ID">
+            <button class="button is-primary" style="margin-top: 10px;" onclick="fetchStatement()">View Statement</button>
+        </div>
+
+        <!-- Error Message -->
+        <div id="error" class="error"></div>
+
+        <!-- Statement Section -->
+        <div id="statement" class="statement"></div>
+    </div>
+</body>
+</html>

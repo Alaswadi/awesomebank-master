@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Credit Card Info</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
+    <style>
+        body {
+            background-color: #f4f4f9;
+        }
+        .container {
+            margin: 50px auto;
+            max-width: 600px;
+            text-align: center;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .logo {
+            max-width: 150px;
+            margin: 0 auto 20px auto;
+        }
+        .error {
+            color: red;
+            margin-top: 10px;
+        }
+        .hint {
+            font-size: 0.9em;
+            color: gray;
+            margin-top: 10px;
+        }
+    </style>
+    <script>
+        async function fetchCreditCard() {
+            const token = localStorage.getItem('token');
+            const params = new URLSearchParams(window.location.search);
+            const userId = params.get('user_id');
+
+            if (!userId) {
+                alert('User ID not provided!');
+                window.location.href = 'dashboard.html';
+                return;
+            }
+
+            try {
+                const response = await fetch(`http://localhost:8001/creditCard.php?user_id=${userId}`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'User-Agent': `Mozilla/5.0`
+                    }
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    document.getElementById('credit-card').innerHTML = `
+                        <p><strong>Card Number:</strong> ${data.card_number}</p>
+                        <p><strong>Expiry Date:</strong> ${data.expiry_date}</p>
+                        <p><strong>CVV:</strong> ${data.cvv}</p>
+                    `;
+                } else {
+                    document.getElementById('error').textContent = data.message || 'Failed to fetch credit card info.';
+                }
+            } catch (error) {
+                console.error('Error fetching credit card info:', error);
+                document.getElementById('error').textContent = 'An unexpected error occurred.';
+            }
+        }
+
+        window.onload = fetchCreditCard;
+    </script>
+</head>
+<body>
+    <div class="container">
+        <!-- Logo Section -->
+        <img src="logo.png" alt="Bank API Logo" class="logo">
+
+        <!-- Development Hint -->
+        <div class="hint">
+            Development Note: This page is under development. Please come back later till we fix this User-Agent thingy. 🤔
+        </div>
+
+        <!-- Title -->
+        <h1 class="title">Credit Card Info</h1>
+
+        <!-- Error Message -->
+        <div id="error" class="error"></div>
+
+        <!-- Credit Card Info -->
+        <div id="credit-card" style="margin-top: 20px;">
+            <!-- Credit card details will be displayed here -->
+        </div>
+    </div>
+</body>
+</html>

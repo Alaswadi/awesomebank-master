@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Money Transfer</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
+    <style>
+        body {
+            background-color: #f4f4f9;
+        }
+        .container {
+            margin: 50px auto;
+            max-width: 600px;
+            text-align: center;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .logo {
+            max-width: 150px;
+            margin: 0 auto 20px auto;
+        }
+        .error {
+            color: red;
+            margin-top: 10px;
+        }
+        .success {
+            color: green;
+            margin-top: 10px;
+        }
+        .input {
+            margin-bottom: 10px;
+        }
+    </style>
+    <script>
+        async function fetchAccountDetails() {
+            const token = localStorage.getItem('token');
+            const params = new URLSearchParams(window.location.search);
+            const userId = params.get('user_id');
+
+            if (!userId) {
+                alert('User ID not provided!');
+                window.location.href = 'dashboard.html';
+                return;
+            }
+
+            try {
+                const response = await fetch(`http://localhost:8001/accountOverview.php?user_id=${userId}`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                const data = await response.json();
+
+                if (response.ok && Array.isArray(data) && data.length > 0) {
+                    const account = data[0]; // Use the first account in the array
+                    document.getElementById('from-account').value = account.account_id; // Use account_id instead of user_id
+                    document.getElementById('from-account').disabled = true;
+                    document.getElementById('balance-info').textContent = `Your account balance is: ${account.balance} Rial`;
+                } else {
+                    document.getElementById('error').textContent = 'No account found for the user.';
+                }
+            } catch (error) {
+                console.error('Error fetching account details:', error);
+                document.getElementById('error').textContent = 'An unexpected error occurred.';
+            }
+        }
+
+        async function transferFunds() {
+            const token = localStorage.getItem('token');
+            const fromAccount = document.getElementById('from-account').value;
+            const toAccount = document.getElementById('to-account').value;
+            const amount = document.getElementById('amount').value;
+
+            if (!fromAccount || !toAccount || !amount) {
+                document.getElementById('error').textContent = 'All fields are required.';
+                return;
+            }
+
+            try {
+                const response = await fetch('http://localhost:8001/moneyTransfer.php', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        from_account_id: fromAccount,
+                        to_account_id: toAccount,
+                        amount: amount
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    document.getElementById('success').textContent = `Transfer successful! Recipient's Name: ${data.recipient_name}, Balance: ${data.recipient_balance} Rial`;
+                    document.getElementById('balance-info').textContent = `Your account balance is: ${data.your_balance} Rial`;
+                    document.getElementById('error').textContent = '';
+                } else {
+                    document.getElementById('error').textContent = data.message || 'Failed to transfer funds.';
+                    document.getElementById('success').textContent = '';
+                }
+            } catch (error) {
+                console.error('Error during money transfer:', error);
+                document.getElementById('error').textContent = 'An unexpected error occurred.';
+                document.getElementById('success').textContent = '';
+            }
+        }
+
+        window.onload = fetchAccountDetails;
+    </script>
+</head>
+<body>
+    <div class="container">
+        <!-- Logo Section -->
+        <img src="logo.png" alt="Bank API Logo" class="logo">
+
+        <!-- Title -->
+        <h1 class="title">Money Transfer</h1>
+
+        <!-- Balance Info -->
+        <p id="balance-info"></p>
+
+        <!-- Input Fields -->
+        <input type="text" id="from-account" class="input" placeholder="Your Account ID" readonly>
+        <input type="text" id="to-account" class="input" placeholder="Recipient Account ID">
+        <input type="number" id="amount" class="input" placeholder="Amount to Transfer">
+
+        <!-- Transfer Button -->
+        <button class="button is-primary" onclick="transferFunds()">Transfer</button>
+
+        <!-- Error and Success Messages -->
+        <div id="error" class="error"></div>
+        <div id="success" class="success"></div>
+    </div>
+</body>
+</html>

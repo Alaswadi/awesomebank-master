@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload Pictures</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
+    <style>
+        body {
+            background-color: #f4f4f9;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .container {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+            max-width: 400px;
+            text-align: center;
+        }
+        .logo {
+            max-width: 100px;
+            margin-bottom: 20px;
+        }
+        .hint {
+            color: #888;
+            font-style: italic;
+            margin-bottom: 20px;
+        }
+        .hint span {
+            color: #e63946;
+            font-weight: bold;
+        }
+    </style>
+    <script>
+        function validateFile(event) {
+            const fileInput = event.target;
+            const file = fileInput.files[0];
+
+            if (!file) {
+                alert("No file selected!");
+                return false;
+            }
+
+            const validExtensions = ["image/jpeg", "image/png", "image/gif"];
+            if (!validExtensions.includes(file.type)) {
+                alert("Only image files are allowed!");
+                fileInput.value = ""; // Reset the input
+                return false;
+            }
+
+            return true;
+        }
+    </script>
+</head>
+<body>
+    <div class="container">
+        <!-- Logo Section -->
+        <img src="logo.png" alt="Bank API Logo" class="logo">
+
+        <!-- Title -->
+        <h1 class="title">Upload Pictures</h1>
+
+        <!-- Funny Hint -->
+        <p class="hint">
+            This feature is for <span>updating the website banner</span>. 
+            Our <span>genius programmer</span> is still testing it. 
+            Don’t try anything funny, or he might break the whole website again!
+        </p>
+
+        <!-- Upload Form -->
+        <form id="upload-form" action="uploadPictures.php" method="POST" enctype="multipart/form-data">
+            <div class="field">
+                <label class="label">Choose an image file:</label>
+                <div class="control">
+                    <input class="input" type="file" name="file" id="file" onchange="validateFile(event)" required>
+                </div>
+            </div>
+            <button class="button is-primary" type="submit">Upload</button>
+        </form>
+
+        <!-- Error/Message Section -->
+        <div id="message" class="error"></div>
+    </div>
+</body>
+</html>

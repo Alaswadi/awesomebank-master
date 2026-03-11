@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
+    <style>
+        body {
+            background-color: #f4f4f9;
+        }
+        .dashboard-container {
+            display: flex;
+            min-height: 100vh;
+        }
+        .sidebar {
+            width: 250px;
+            background-color: #363636;
+            color: white;
+            padding: 20px;
+        }
+        .sidebar .menu-list a {
+            color: white;
+        }
+        .sidebar .menu-list a:hover {
+            color: #00d1b2;
+        }
+        .content {
+            flex: 1;
+            padding: 20px;
+        }
+        .header {
+            background-color: #00d1b2;
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .logo {
+            max-width: 150px;
+            display: block;
+            margin: 0 auto 20px auto;
+        }
+        .menu-title {
+            margin-bottom: 10px;
+            text-align: center;
+            font-weight: bold;
+        }
+    </style>
+    <script>
+        let userId;
+        let userRole;
+
+        async function loadDashboard() {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                alert('You are not logged in!');
+                window.location.href = 'login.html';
+                return;
+            }
+
+            try {
+                const response = await fetch('http://localhost:8001/dashboard.php', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                    },
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    userId = data.user_id; // Fetch user_id from the server response
+                    userRole = data.role; // Fetch role from the server response
+                    document.getElementById('welcome-message').textContent = `Welcome, ${data.username}`;
+                    loadMenu(userRole); // Load the menu based on the user's role
+                } else {
+                    alert(data.message || 'Invalid or expired token!');
+                    localStorage.removeItem('token');
+                    window.location.href = 'login.html';
+                }
+            } catch (error) {
+                console.error('Error loading dashboard:', error);
+                alert('An error occurred. Please try again.');
+                window.location.href = 'login.html';
+            }
+        }
+
+        function loadMenu(role) {
+            const menuList = document.getElementById('menu-list');
+            menuList.innerHTML = ''; // Clear existing menu items
+
+            if (role === 'admin') {
+                menuList.innerHTML += `
+                    <li><a href="#">Admin Dashboard</a></li>
+                    <li><a href="manageAccounts.html">Manage Customer Accounts</a></li>
+                    <li><a href="fetchExchangeRates.html">Fetch Exchange Rates</a></li>
+                    <li><a href="uploadPictures.html">Upload Pictures</a></li>
+                    <li><a href="systemSettings.html">System Settings</a></li>
+                `;
+            } else if (role === 'customer') {
+                menuList.innerHTML += `
+                    <li><a href="accountOverview.html?user_id=${userId}">Account Overview</a></li>
+                    <li><a href="customerStatement.html?user_id=${userId}">Customer Statement</a></li>
+                    <li><a href="creditCard.html?user_id=${userId}">Credit Card Info</a></li>
+                    <li><a href="billPayment.html?user_id=${userId}">Bill Payment</a></li>
+                    <li><a href="moneyTransfer.html?user_id=${userId}">Money Transfer</a></li>
+                    <li><a href="twoFactorAuth.html">Enable 2FA</a></li>
+                    <li><a href="editProfile.html?user_id=${userId}">Edit Profile</a></li>
+                `;
+            } else {
+                alert('Unauthorized role!');
+                localStorage.removeItem('token');
+                window.location.href = 'login.html';
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('token');
+            window.location.href = 'login.html';
+        }
+
+        window.onload = loadDashboard;
+    </script>
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <img src="logo.png" alt="Bank API Logo" class="logo">
+            <h2 class="menu-title has-text-white">Menu</h2>
+            <ul class="menu-list" id="menu-list">
+                <!-- Menu items will be dynamically loaded here -->
+            </ul>
+            <h2 class="menu-title has-text-white">Actions</h2>
+            <ul class="menu-list">
+                <li><a href="#" onclick="logout()">Logout</a></li>
+            </ul>
+        </aside>
+
+        <!-- Main Content -->
+        <div class="content">
+            <div class="header">
+                <h1 class="title" id="welcome-message">Loading...</h1>
+            </div>
+            <p class="content">Use the menu on the left to navigate.</p>
+        </div>
+    </div>
+</body>
+</html>

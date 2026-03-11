@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bill Payment</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
+    <style>
+        body {
+            background-color: #f4f4f9;
+        }
+        .container {
+            margin: 50px auto;
+            max-width: 600px;
+            text-align: center;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .logo {
+            max-width: 150px;
+            margin: 0 auto 20px auto;
+        }
+        .error {
+            color: red;
+            margin-top: 10px;
+        }
+        .success {
+            color: green;
+            margin-top: 10px;
+        }
+    </style>
+    <script>
+        async function queryBill() {
+            const phoneNumber = document.getElementById('phone-number').value;
+            const token = localStorage.getItem('token');
+
+            if (!phoneNumber.match(/^1\d{8}$/)) {
+                document.getElementById('error').textContent = 'Invalid phone number. It must be 9 digits starting with 1.';
+                return;
+            }
+
+            try {
+                const response = await fetch(`http://localhost:8001/queryBill.php?phone_number=${phoneNumber}`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    document.getElementById('bill-amount').textContent = `Bill Amount: ${data.bill_amount} Rial`;
+                    document.getElementById('pay-button').disabled = false;
+                    document.getElementById('error').textContent = '';
+                } else {
+                    document.getElementById('error').textContent = data.message || 'Failed to query bill.';
+                }
+            } catch (error) {
+                console.error('Error querying bill:', error);
+                document.getElementById('error').textContent = 'An unexpected error occurred.';
+            }
+        }
+
+        async function payBill() {
+            const token = localStorage.getItem('token');
+
+            try {
+                const response = await fetch(`http://localhost:8001/payBill.php`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        phone_number: document.getElementById('phone-number').value
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    document.getElementById('success').textContent = 'Bill paid successfully!';
+                    document.getElementById('error').textContent = '';
+                    document.getElementById('pay-button').disabled = true;
+                } else {
+                    document.getElementById('error').textContent = data.message || 'Failed to pay bill.';
+                }
+            } catch (error) {
+                console.error('Error paying bill:', error);
+                document.getElementById('error').textContent = 'An unexpected error occurred.';
+            }
+        }
+    </script>
+</head>
+<body>
+    <div class="container">
+        <!-- Logo Section -->
+        <img src="logo.png" alt="Bank API Logo" class="logo">
+
+        <!-- Title -->
+        <h1 class="title">Bill Payment</h1>
+
+        <!-- Instruction -->
+        <p>Enter the phone number you want to inquire (e.g., 123456789):</p>
+
+        <!-- Input Field and Buttons -->
+        <input type="text" id="phone-number" class="input" placeholder="Enter 9-digit phone number">
+        <button class="button is-primary" style="margin-top: 10px;" onclick="queryBill()">Inquire</button>
+
+        <!-- Error and Bill Amount -->
+        <div id="error" class="error"></div>
+        <div id="bill-amount" style="margin-top: 20px;"></div>
+
+        <!-- Pay Button -->
+        <button id="pay-button" class="button is-success" style="margin-top: 10px;" onclick="payBill()" disabled>Pay Bill</button>
+        <div id="success" class="success"></div>
+    </div>
+</body>
+</html>

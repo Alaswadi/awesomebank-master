@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Account Overview</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
+    <style>
+        body {
+            background-color: #f4f4f9;
+        }
+        .container {
+            margin: 50px auto;
+            max-width: 800px;
+            text-align: center;
+        }
+        .logo {
+            max-width: 150px;
+            display: block;
+            margin: 0 auto 20px auto;
+        }
+        .table-container {
+            margin-top: 20px;
+        }
+    </style>
+    <script>
+        async function loadAccounts() {
+            const params = new URLSearchParams(window.location.search);
+            const userId = params.get('user_id');
+
+            if (!userId) {
+                alert('User ID not provided!');
+                window.location.href = 'dashboard.html';
+                return;
+            }
+
+            console.log('Fetching accounts for user_id:', userId);
+
+            try {
+                const response = await fetch(`http://localhost:8001/accountOverview.php?user_id=${userId}`, {
+                    method: 'GET',
+                });
+
+                const accounts = await response.json();
+
+                console.log('API response:', accounts);
+
+                if (response.ok) {
+                    const tableBody = document.getElementById('account-table-body');
+                    tableBody.innerHTML = ''; // Clear the table
+
+                    accounts.forEach(account => {
+                        // Convert balance to a number if it's a string
+                        const balance = parseFloat(account.balance) || 0;
+
+                        const row = `
+                            <tr>
+                                <td>${account.account_id}</td>
+                                <td>${account.account_type}</td>
+                                <td>${balance.toFixed(2)}</td>
+                            </tr>
+                        `;
+                        tableBody.innerHTML += row;
+                    });
+                } else {
+                    console.error('Failed response:', accounts);
+                    alert('Failed to load accounts.');
+                }
+            } catch (error) {
+                console.error('Error fetching accounts:', error);
+                alert('An error occurred while loading accounts.');
+            }
+        }
+
+        window.onload = loadAccounts;
+    </script>
+</head>
+<body>
+    <div class="container">
+        <!-- Logo Section -->
+        <img src="logo.png" alt="Bank API Logo" class="logo">
+
+        <!-- Page Title -->
+        <h1 class="title">Account Overview</h1>
+
+        <!-- Account Table -->
+        <div class="table-container">
+            <table class="table is-fullwidth is-striped">
+                <thead>
+                    <tr>
+                        <th>Account ID</th>
+                        <th>Account Type</th>
+                        <th>Balance</th>
+                    </tr>
+                </thead>
+                <tbody id="account-table-body">
+                    <!-- Account rows will be dynamically inserted here -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
+</html>

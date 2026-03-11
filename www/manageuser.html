@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Users</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
+    <style>
+        body {
+            background-color: #f4f4f9;
+        }
+        .container {
+            margin: 50px auto;
+            max-width: 800px;
+        }
+        .table-container {
+            margin-top: 20px;
+        }
+    </style>
+    <script>
+        async function loadUsers() {
+            try {
+                const response = await fetch('http://localhost:8001/manageuser.php', {
+                    method: 'GET',
+                });
+
+                const users = await response.json();
+
+                if (response.ok) {
+                    const userTable = document.getElementById('user-table-body');
+                    userTable.innerHTML = ''; // Clear the table
+
+                    users.forEach(user => {
+                        const row = `
+                            <tr>
+                                <td>${user.id}</td>
+                                <td>${user.username}</td>
+                                <td>${user.role}</td>
+                                <td>
+                                    <a class="button is-small is-primary" href="editProfile.html?user_id=${user.id}">Edit</a>
+                                </td>
+                            </tr>
+                        `;
+                        userTable.innerHTML += row;
+                    });
+                } else {
+                    alert('Failed to load users.');
+                }
+            } catch (error) {
+                alert('An error occurred while loading users.');
+            }
+        }
+
+        window.onload = loadUsers;
+    </script>
+</head>
+<body>
+    <div class="container">
+        <h1 class="title">Manage Users</h1>
+        <div class="table-container">
+            <table class="table is-fullwidth is-striped">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Username</th>
+                        <th>Role</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="user-table-body">
+                    <!-- User rows will be dynamically inserted here -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
+</html>

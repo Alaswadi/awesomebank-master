@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Signup</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f4f4f9;
+        }
+        .signup-container {
+            max-width: 400px;
+            width: 100%;
+            text-align: center;
+            background: #ffffff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .logo {
+            max-width: 100px;
+            margin: 20px auto;
+        }
+        .title {
+            margin-bottom: 20px;
+            color: #363636;
+        }
+        .field {
+            margin-bottom: 15px;
+        }
+        .button {
+            width: 100%;
+        }
+    </style>
+    <script>
+        async function signup(event) {
+            event.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const role = document.getElementById('role').value;
+
+            try {
+                const response = await fetch('http://localhost:8001/signup.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ username, password, role }),
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    alert(data.message || 'Signup successful! You can now log in.');
+                    window.location.href = 'login.html';
+                } else {
+                    alert(data.message || 'Signup failed!');
+                }
+            } catch (error) {
+                alert('An error occurred. Please try again.');
+            }
+        }
+    </script>
+</head>
+<body>
+    <div class="signup-container">
+        <!-- Logo Section -->
+        <img src="logo.png" alt="Bank API Logo" class="logo">
+
+        <!-- Signup Form -->
+        <h1 class="title">Signup</h1>
+        <form id="signup-form" onsubmit="signup(event)">
+            <div class="field">
+                <label class="label">Username</label>
+                <div class="control">
+                    <input class="input" type="text" id="username" placeholder="Enter your username" required>
+                </div>
+            </div>
+            <div class="field">
+                <label class="label">Password</label>
+                <div class="control">
+                    <input class="input" type="password" id="password" placeholder="Enter your password" required>
+                </div>
+            </div>
+            <div class="field">
+                <!-- Hidden Role Field -->
+                <input class="input" type="hidden" id="role" value="customer">
+            </div>
+            <div class="field">
+                <button type="submit" class="button is-primary">Signup</button>
+            </div>
+        </form>
+    </div>
+</body>
+</html>

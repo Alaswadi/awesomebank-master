@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enable Two-Factor Authentication</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f4f4f9;
+        }
+        .container {
+            text-align: center;
+            max-width: 400px;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .logo {
+            max-width: 100px;
+            margin: 20px auto;
+        }
+        .title {
+            margin-bottom: 20px;
+        }
+        .field {
+            margin-bottom: 15px;
+        }
+        .button {
+            width: 100%;
+        }
+    </style>
+    <script>
+        async function enable2FA(event) {
+            event.preventDefault();
+            const otp = document.getElementById('otp').value;
+
+            try {
+                const response = await fetch('enable2FA.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ otp }),
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    alert(data.message || 'Two-Factor Authentication enabled successfully!');
+                } else {
+                    alert(data.message || 'Failed to enable Two-Factor Authentication.');
+                }
+            } catch (error) {
+                alert('An error occurred. Please try again.');
+            }
+        }
+
+        async function requestOTP() {
+            try {
+                const response = await fetch('requestOTP.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    alert('OTP has been sent to your phone.');
+                    console.log('Debug: OTP ->', data.otp); // Display OTP in console for exploitation
+                } else {
+                    alert(data.message || 'Failed to send OTP.');
+                }
+            } catch (error) {
+                alert('An error occurred while requesting OTP.');
+            }
+        }
+
+        window.onload = requestOTP;
+    </script>
+</head>
+<body>
+    <div class="container">
+        <!-- Logo Section -->
+        <img src="logo.png" alt="Bank API Logo" class="logo">
+
+        <!-- 2FA Form -->
+        <h1 class="title">Enable Two-Factor Authentication</h1>
+        <p>We have sent an OTP to your registered phone number. Please enter it below to enable 2FA.</p>
+        <form id="2fa-form" onsubmit="enable2FA(event)">
+            <div class="field">
+                <label class="label">Enter OTP</label>
+                <div class="control">
+                    <input class="input" type="text" id="otp" placeholder="Enter your OTP" required>
+                </div>
+            </div>
+            <div class="field">
+                <button type="submit" class="button is-primary">Enable 2FA</button>
+            </div>
+        </form>
+    </div>
+</body>
+</html>

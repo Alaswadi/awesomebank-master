@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fetch Exchange Rates</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
+    <style>
+        body {
+            background-color: #f4f4f9;
+        }
+        .container {
+            margin: 50px auto;
+            max-width: 600px;
+            text-align: center;
+        }
+        .logo {
+            max-width: 120px;
+            margin-bottom: 20px;
+        }
+        .error {
+            color: red;
+            margin-top: 10px;
+        }
+        .result {
+            margin-top: 20px;
+            text-align: left;
+        }
+        pre {
+            background: #f4f4f4;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        .button {
+            margin-top: 20px;
+        }
+    </style>
+    <script>
+        async function fetchExchangeRates() {
+            const url = document.getElementById('url').value;
+
+            if (!url) {
+                document.getElementById('error').textContent = "URL is required!";
+                return;
+            }
+
+            try {
+                const response = await fetch('http://localhost:8001/fetchExchangeRates.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ url })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    document.getElementById('result').innerHTML = `
+                        <h2 class="title is-4">Exchange Rates</h2>
+                        <p><strong>Base Currency:</strong> ${data.base || 'N/A'}</p>
+                        <p><strong>Rates:</strong></p>
+                        <pre>${JSON.stringify(data.rates || {}, null, 2)}</pre>
+                    `;
+                    document.getElementById('error').textContent = '';
+                } else {
+                    document.getElementById('error').textContent = data.message || "Failed to fetch exchange rates.";
+                    document.getElementById('result').innerHTML = '';
+                }
+            } catch (error) {
+                console.error('Error fetching exchange rates:', error);
+                document.getElementById('error').textContent = "An unexpected error occurred.";
+                document.getElementById('result').innerHTML = '';
+            }
+        }
+    </script>
+</head>
+<body>
+    <div class="container">
+        <!-- Logo Section -->
+        <img src="logo.png" alt="Bank API Logo" class="logo">
+
+        <!-- Title -->
+        <h1 class="title">Fetch Exchange Rates</h1>
+
+        <!-- Error Message -->
+        <div id="error" class="error"></div>
+
+        <!-- Input for URL -->
+        <div class="field">
+            <label class="label">Still in testing phase, don't do something stupid yet..</label>
+            <label class="label">Enter Exchange Rate API URL:</label>
+            <div class="control">
+                <input id="url" class="input" type="text" placeholder="https://api.exchangerate-api.com/v4/latest/USD">
+            </div>
+        </div>
+
+        <!-- Fetch Button -->
+        <button class="button is-primary" onclick="fetchExchangeRates()">Fetch Rates</button>
+
+        <!-- Results Section -->
+        <div id="result" class="result"></div>
+    </div>
+</body>
+</html>
