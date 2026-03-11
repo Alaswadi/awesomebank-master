@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,6 +10,7 @@
         body {
             background-color: #f4f4f9;
         }
+
         .container {
             margin: 50px auto;
             max-width: 600px;
@@ -18,18 +20,22 @@
             border-radius: 10px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
+
         .logo {
             max-width: 150px;
             margin: 0 auto 20px auto;
         }
+
         .error {
             color: red;
             margin-top: 10px;
         }
+
         .statement {
             margin-top: 20px;
             text-align: left;
         }
+
         h3 {
             margin-bottom: 10px;
             color: #363636;
@@ -46,7 +52,7 @@
             }
 
             try {
-                const response = await fetch(`http://localhost:8001/customerStatement.php?account_id=${accountId}`, {
+                const response = await fetch(`customerStatement.php?account_id=${accountId}`, {
                     method: 'GET',
                     headers: {
                         'Authorization': `Bearer ${token}`
@@ -78,6 +84,7 @@
         }
     </script>
 </head>
+
 <body>
     <div class="container">
         <!-- Logo Section -->
@@ -90,7 +97,8 @@
         <div>
             <label for="account-id" class="label">Account ID</label>
             <input type="text" id="account-id" class="input" placeholder="Enter your account ID">
-            <button class="button is-primary" style="margin-top: 10px;" onclick="fetchStatement()">View Statement</button>
+            <button class="button is-primary" style="margin-top: 10px;" onclick="fetchStatement()">View
+                Statement</button>
         </div>
 
         <!-- Error Message -->
@@ -100,4 +108,5 @@
         <div id="statement" class="statement"></div>
     </div>
 </body>
+
 </html>

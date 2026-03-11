@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,16 +10,19 @@
         body {
             background-color: #f4f4f9;
         }
+
         .container {
             margin: 50px auto;
             max-width: 800px;
             text-align: center;
         }
+
         .logo {
             max-width: 150px;
             display: block;
             margin: 0 auto 20px auto;
         }
+
         .table-container {
             margin-top: 20px;
         }
@@ -37,7 +41,7 @@
             console.log('Fetching accounts for user_id:', userId);
 
             try {
-                const response = await fetch(`http://localhost:8001/accountOverview.php?user_id=${userId}`, {
+                const response = await fetch(`accountOverview.php?user_id=${userId}`, {
                     method: 'GET',
                 });
 
@@ -75,6 +79,7 @@
         window.onload = loadAccounts;
     </script>
 </head>
+
 <body>
     <div class="container">
         <!-- Logo Section -->
@@ -100,4 +105,5 @@
         </div>
     </div>
 </body>
+
 </html>

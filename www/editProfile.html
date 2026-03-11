@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,6 +10,7 @@
         body {
             background-color: #f4f4f9;
         }
+
         .profile-container {
             max-width: 400px;
             margin: 50px auto;
@@ -18,14 +20,17 @@
             box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
             text-align: center;
         }
+
         .profile-header {
             text-align: center;
             margin-bottom: 20px;
         }
+
         .logo {
             max-width: 100px;
             margin: 0 auto 20px auto;
         }
+
         .save-button {
             width: 100%;
         }
@@ -41,7 +46,7 @@
             }
 
             try {
-                const response = await fetch(`http://localhost:8001/editProfile.php?user_id=${userId}`, {
+                const response = await fetch(`editProfile.php?user_id=${userId}`, {
                     method: 'GET',
                 });
 
@@ -68,7 +73,7 @@
             const password = document.getElementById('password').value;
 
             try {
-                const response = await fetch('http://localhost:8001/editProfile.php', {
+                const response = await fetch('editProfile.php', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -92,6 +97,7 @@
         window.onload = loadProfile;
     </script>
 </head>
+
 <body>
     <div class="profile-container">
         <!-- Logo Section -->
@@ -131,4 +137,5 @@
         </form>
     </div>
 </body>
+
 </html>

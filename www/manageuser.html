@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,10 +10,12 @@
         body {
             background-color: #f4f4f9;
         }
+
         .container {
             margin: 50px auto;
             max-width: 800px;
         }
+
         .table-container {
             margin-top: 20px;
         }
@@ -20,7 +23,7 @@
     <script>
         async function loadUsers() {
             try {
-                const response = await fetch('http://localhost:8001/manageuser.php', {
+                const response = await fetch('manageuser.php', {
                     method: 'GET',
                 });
 
@@ -54,6 +57,7 @@
         window.onload = loadUsers;
     </script>
 </head>
+
 <body>
     <div class="container">
         <h1 class="title">Manage Users</h1>
@@ -74,4 +78,5 @@
         </div>
     </div>
 </body>
+
 </html>

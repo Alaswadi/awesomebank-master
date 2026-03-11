@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -14,6 +15,7 @@
             margin: 0;
             background-color: #f4f4f9;
         }
+
         .signup-container {
             max-width: 400px;
             width: 100%;
@@ -23,17 +25,21 @@
             border-radius: 8px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
+
         .logo {
             max-width: 100px;
             margin: 20px auto;
         }
+
         .title {
             margin-bottom: 20px;
             color: #363636;
         }
+
         .field {
             margin-bottom: 15px;
         }
+
         .button {
             width: 100%;
         }
@@ -46,7 +52,7 @@
             const role = document.getElementById('role').value;
 
             try {
-                const response = await fetch('http://localhost:8001/signup.php', {
+                const response = await fetch('signup.php', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -68,6 +74,7 @@
         }
     </script>
 </head>
+
 <body>
     <div class="signup-container">
         <!-- Logo Section -->
@@ -98,4 +105,5 @@
         </form>
     </div>
 </body>
+
 </html>
