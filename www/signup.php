@@ -24,7 +24,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $username = $input['username'] ?? null;
     $password = $input['password'] ?? null;
-    $role = 'customer'; // Default role for new users
+
+    // Vulnerability #9: Mass Assignment (A03/A01)
+    // `role` is read directly from user-supplied input instead of being hardcoded.
+    // An attacker can send {"username":"evil","password":"pass","role":"admin"}
+    // to register themselves as an administrator.
+    $role = $input['role'] ?? 'customer';
 
     if (!$username || !$password) {
         http_response_code(400);
@@ -42,8 +47,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 
+    // Vulnerability #10: Weak Crypto — password stored as MD5 (not bcrypt/argon2)
+    $hashedPassword = md5($password);
+
     // Insert new user into the users table
-    $insertUserQuery = "INSERT INTO users (username, password, role) VALUES ('$username', '$password', '$role')";
+    $insertUserQuery = "INSERT INTO users (username, password, role) VALUES ('$username', '$hashedPassword', '$role')";
     if (!$conn->query($insertUserQuery)) {
         http_response_code(500);
         echo json_encode(["message" => "Failed to create user", "error" => $conn->error]);

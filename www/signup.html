@@ -1,109 +1,92 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Signup</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
-    <style>
-        body {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-            background-color: #f4f4f9;
-        }
-
-        .signup-container {
-            max-width: 400px;
-            width: 100%;
-            text-align: center;
-            background: #ffffff;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-
-        .logo {
-            max-width: 100px;
-            margin: 20px auto;
-        }
-
-        .title {
-            margin-bottom: 20px;
-            color: #363636;
-        }
-
-        .field {
-            margin-bottom: 15px;
-        }
-
-        .button {
-            width: 100%;
-        }
-    </style>
-    <script>
-        async function signup(event) {
-            event.preventDefault();
-            const username = document.getElementById('username').value;
-            const password = document.getElementById('password').value;
-            const role = document.getElementById('role').value;
-
-            try {
-                const response = await fetch('signup.php', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ username, password, role }),
-                });
-
-                const data = await response.json();
-
-                if (response.ok) {
-                    alert(data.message || 'Signup successful! You can now log in.');
-                    window.location.href = 'login.html';
-                } else {
-                    alert(data.message || 'Signup failed!');
-                }
-            } catch (error) {
-                alert('An error occurred. Please try again.');
-            }
-        }
-    </script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Create Account — AwesomeBank</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
 </head>
-
 <body>
-    <div class="signup-container">
-        <!-- Logo Section -->
-        <img src="logo.png" alt="Bank API Logo" class="logo">
+  <div class="auth-page">
+    <div class="auth-card fade-in">
 
-        <!-- Signup Form -->
-        <h1 class="title">Signup</h1>
-        <form id="signup-form" onsubmit="signup(event)">
-            <div class="field">
-                <label class="label">Username</label>
-                <div class="control">
-                    <input class="input" type="text" id="username" placeholder="Enter your username" required>
-                </div>
-            </div>
-            <div class="field">
-                <label class="label">Password</label>
-                <div class="control">
-                    <input class="input" type="password" id="password" placeholder="Enter your password" required>
-                </div>
-            </div>
-            <div class="field">
-                <!-- Hidden Role Field -->
-                <input class="input" type="hidden" id="role" value="customer">
-            </div>
-            <div class="field">
-                <button type="submit" class="button is-primary">Signup</button>
-            </div>
-        </form>
+      <div class="auth-logo">
+        <div class="auth-logo-icon">AB</div>
+        <span class="auth-logo-text">AwesomeBank</span>
+      </div>
+
+      <h1 class="auth-heading">Create your account</h1>
+      <p class="auth-subheading">Join AwesomeBank and start managing your finances</p>
+
+      <div id="alert-box" style="display:none;" class="alert"></div>
+
+      <form id="signup-form" onsubmit="signup(event)">
+        <div class="form-group">
+          <label class="form-label">Username</label>
+          <div class="form-input-wrapper">
+            <i class="fas fa-user form-input-icon"></i>
+            <input class="form-input has-icon" type="text" id="username" placeholder="Choose a username" required>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Password</label>
+          <div class="form-input-wrapper">
+            <i class="fas fa-lock form-input-icon"></i>
+            <input class="form-input has-icon" type="password" id="password" placeholder="Choose a strong password" required>
+          </div>
+        </div>
+        <input type="hidden" id="role" value="customer">
+        <button type="submit" id="submit-btn" class="btn btn-accent btn-full btn-lg">Create Account</button>
+      </form>
+
+      <p class="auth-footer" style="margin-top:16px;">Already have an account? <a href="login.html">Sign in</a></p>
     </div>
-</body>
+  </div>
 
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <script>
+    async function signup(event) {
+      event.preventDefault();
+      const username = document.getElementById('username').value;
+      const password = document.getElementById('password').value;
+      const role = document.getElementById('role').value;
+      const alertBox = document.getElementById('alert-box');
+      const btn = document.getElementById('submit-btn');
+
+      btn.disabled = true;
+      btn.textContent = 'Creating account...';
+      alertBox.style.display = 'none';
+
+      try {
+        const response = await fetch('signup.php', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password, role }),
+        });
+        const data = await response.json();
+
+        if (response.ok) {
+          alertBox.className = 'alert alert-success';
+          alertBox.innerHTML = '<i class="fas fa-check-circle"></i> Account created! Redirecting to login...';
+          alertBox.style.display = 'flex';
+          setTimeout(() => window.location.href = 'login.html', 1200);
+        } else {
+          alertBox.className = 'alert alert-danger';
+          alertBox.innerHTML = `<i class="fas fa-exclamation-circle"></i> ${data.message || 'Signup failed. Please try again.'}`;
+          alertBox.style.display = 'flex';
+        }
+      } catch (err) {
+        alertBox.className = 'alert alert-danger';
+        alertBox.innerHTML = '<i class="fas fa-exclamation-circle"></i> An error occurred. Please try again.';
+        alertBox.style.display = 'flex';
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Create Account';
+      }
+    }
+  </script>
+</body>
 </html>

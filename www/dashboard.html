@@ -1,162 +1,93 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
-    <style>
-        body {
-            background-color: #f4f4f9;
-        }
-
-        .dashboard-container {
-            display: flex;
-            min-height: 100vh;
-        }
-
-        .sidebar {
-            width: 250px;
-            background-color: #363636;
-            color: white;
-            padding: 20px;
-        }
-
-        .sidebar .menu-list a {
-            color: white;
-        }
-
-        .sidebar .menu-list a:hover {
-            color: #00d1b2;
-        }
-
-        .content {
-            flex: 1;
-            padding: 20px;
-        }
-
-        .header {
-            background-color: #00d1b2;
-            color: white;
-            padding: 20px;
-            border-radius: 8px;
-            text-align: center;
-            margin-bottom: 20px;
-        }
-
-        .logo {
-            max-width: 150px;
-            display: block;
-            margin: 0 auto 20px auto;
-        }
-
-        .menu-title {
-            margin-bottom: 10px;
-            text-align: center;
-            font-weight: bold;
-        }
-    </style>
-    <script>
-        let userId;
-        let userRole;
-
-        async function loadDashboard() {
-            const token = localStorage.getItem('token');
-            if (!token) {
-                alert('You are not logged in!');
-                window.location.href = 'login.html';
-                return;
-            }
-
-            try {
-                const response = await fetch('dashboard.php', {
-                    method: 'GET',
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                    },
-                });
-
-                const data = await response.json();
-
-                if (response.ok) {
-                    userId = data.user_id; // Fetch user_id from the server response
-                    userRole = data.role; // Fetch role from the server response
-                    document.getElementById('welcome-message').textContent = `Welcome, ${data.username}`;
-                    loadMenu(userRole); // Load the menu based on the user's role
-                } else {
-                    alert(data.message || 'Invalid or expired token!');
-                    localStorage.removeItem('token');
-                    window.location.href = 'login.html';
-                }
-            } catch (error) {
-                console.error('Error loading dashboard:', error);
-                alert('An error occurred. Please try again.');
-                window.location.href = 'login.html';
-            }
-        }
-
-        function loadMenu(role) {
-            const menuList = document.getElementById('menu-list');
-            menuList.innerHTML = ''; // Clear existing menu items
-
-            if (role === 'admin') {
-                menuList.innerHTML += `
-                    <li><a href="#">Admin Dashboard</a></li>
-                    <li><a href="manageAccounts.html">Manage Customer Accounts</a></li>
-                    <li><a href="fetchExchangeRates.html">Fetch Exchange Rates</a></li>
-                    <li><a href="uploadPictures.html">Upload Pictures</a></li>
-                    <li><a href="systemSettings.html">System Settings</a></li>
-                `;
-            } else if (role === 'customer') {
-                menuList.innerHTML += `
-                    <li><a href="accountOverview.html?user_id=${userId}">Account Overview</a></li>
-                    <li><a href="customerStatement.html?user_id=${userId}">Customer Statement</a></li>
-                    <li><a href="creditCard.html?user_id=${userId}">Credit Card Info</a></li>
-                    <li><a href="billPayment.html?user_id=${userId}">Bill Payment</a></li>
-                    <li><a href="moneyTransfer.html?user_id=${userId}">Money Transfer</a></li>
-                    <li><a href="twoFactorAuth.html">Enable 2FA</a></li>
-                    <li><a href="editProfile.html?user_id=${userId}">Edit Profile</a></li>
-                `;
-            } else {
-                alert('Unauthorized role!');
-                localStorage.removeItem('token');
-                window.location.href = 'login.html';
-            }
-        }
-
-        function logout() {
-            localStorage.removeItem('token');
-            window.location.href = 'login.html';
-        }
-
-        window.onload = loadDashboard;
-    </script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard — AwesomeBank</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="styles.css">
 </head>
-
 <body>
-    <div class="dashboard-container">
-        <!-- Sidebar -->
-        <aside class="sidebar">
-            <img src="logo.png" alt="Bank API Logo" class="logo">
-            <h2 class="menu-title has-text-white">Menu</h2>
-            <ul class="menu-list" id="menu-list">
-                <!-- Menu items will be dynamically loaded here -->
-            </ul>
-            <h2 class="menu-title has-text-white">Actions</h2>
-            <ul class="menu-list">
-                <li><a href="#" onclick="logout()">Logout</a></li>
-            </ul>
-        </aside>
+  <div class="app-layout">
+    <div id="sidebar-container"></div>
 
-        <!-- Main Content -->
-        <div class="content">
-            <div class="header">
-                <h1 class="title" id="welcome-message">Loading...</h1>
-            </div>
-            <p class="content">Use the menu on the left to navigate.</p>
+    <main class="main-content">
+      <header class="top-bar">
+        <div class="top-bar-title">
+          <h1 id="page-title">Dashboard</h1>
+          <p id="page-subtitle">Welcome back!</p>
         </div>
-    </div>
-</body>
+        <div class="top-bar-actions">
+          <span id="role-badge" class="badge badge-accent"></span>
+        </div>
+      </header>
 
+      <div class="page-content">
+        <!-- Welcome Banner -->
+        <div class="welcome-banner fade-in">
+          <div class="welcome-title" id="welcome-title">Good day!</div>
+          <div class="welcome-subtitle">Here's what's happening with your account today.</div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="mb-24">
+          <div class="section-title">Quick Actions</div>
+          <div class="quick-actions-grid" id="quick-actions">
+            <!-- Dynamically populated -->
+          </div>
+        </div>
+
+        <!-- Info Card -->
+        <div class="card fade-in">
+          <div class="empty-state">
+            <div class="empty-state-icon"><i class="fas fa-chart-line"></i></div>
+            <div class="empty-state-title">Your financial overview</div>
+            <div class="empty-state-text">Use the sidebar or quick actions above to navigate your banking features.</div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="app.js"></script>
+  <script>
+    const QA_ICONS = {
+      'Dashboard':       { icon: 'fa-home',          color: '#eef0fb', fg: '#5469d4' },
+      'My Accounts':     { icon: 'fa-wallet',         color: '#e6f7f6', fg: '#09b09d' },
+      'Money Transfer':  { icon: 'fa-paper-plane',    color: '#fef0f0', fg: '#e5424d' },
+      'Statements':      { icon: 'fa-file-alt',       color: '#fef9ee', fg: '#e8a838' },
+      'Credit Card':     { icon: 'fa-credit-card',    color: '#f3eeff', fg: '#8b5cf6' },
+      'Bill Payment':    { icon: 'fa-receipt',        color: '#fef0f0', fg: '#e5424d' },
+      '2FA Settings':    { icon: 'fa-shield-alt',     color: '#e6f7f6', fg: '#09b09d' },
+      'Edit Profile':    { icon: 'fa-user-edit',      color: '#eef0fb', fg: '#5469d4' },
+      'Manage Accounts': { icon: 'fa-university',     color: '#eef0fb', fg: '#5469d4' },
+      'Manage Users':    { icon: 'fa-users',          color: '#f3eeff', fg: '#8b5cf6' },
+      'Exchange Rates':  { icon: 'fa-exchange-alt',   color: '#fef9ee', fg: '#e8a838' },
+      'Upload Pictures': { icon: 'fa-cloud-upload-alt',color:'#e6f7f6', fg: '#09b09d' },
+      'System Settings': { icon: 'fa-cog',            color: '#f0f2f7', fg: '#6b7194' },
+    };
+
+    window.onload = () => initPage((user) => {
+      document.getElementById('page-subtitle').textContent = `Welcome back, ${user.username}!`;
+      document.getElementById('welcome-title').textContent = `Welcome back, ${user.username}! 👋`;
+      document.getElementById('role-badge').textContent = user.role === 'admin' ? 'Administrator' : 'Customer';
+
+      const menu = user.role === 'admin' ? ADMIN_MENU : CUSTOMER_MENU(user.user_id);
+      const qaEl = document.getElementById('quick-actions');
+      qaEl.innerHTML = menu.filter(m => m.id !== 'dashboard').map(item => {
+        const q = QA_ICONS[item.label] || { icon: 'fa-circle', color: '#eef0fb', fg: '#5469d4' };
+        return `
+          <a href="${item.href}" class="quick-action-btn">
+            <div class="qa-icon" style="background:${q.color};color:${q.fg}">
+              <i class="fas ${q.icon}"></i>
+            </div>
+            <span class="qa-label">${item.label}</span>
+          </a>`;
+      }).join('');
+    });
+  </script>
+</body>
 </html>

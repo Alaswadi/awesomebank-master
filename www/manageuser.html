@@ -1,82 +1,117 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Manage Users</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
-    <style>
-        body {
-            background-color: #f4f4f9;
-        }
-
-        .container {
-            margin: 50px auto;
-            max-width: 800px;
-        }
-
-        .table-container {
-            margin-top: 20px;
-        }
-    </style>
-    <script>
-        async function loadUsers() {
-            try {
-                const response = await fetch('manageuser.php', {
-                    method: 'GET',
-                });
-
-                const users = await response.json();
-
-                if (response.ok) {
-                    const userTable = document.getElementById('user-table-body');
-                    userTable.innerHTML = ''; // Clear the table
-
-                    users.forEach(user => {
-                        const row = `
-                            <tr>
-                                <td>${user.id}</td>
-                                <td>${user.username}</td>
-                                <td>${user.role}</td>
-                                <td>
-                                    <a class="button is-small is-primary" href="editProfile.html?user_id=${user.id}">Edit</a>
-                                </td>
-                            </tr>
-                        `;
-                        userTable.innerHTML += row;
-                    });
-                } else {
-                    alert('Failed to load users.');
-                }
-            } catch (error) {
-                alert('An error occurred while loading users.');
-            }
-        }
-
-        window.onload = loadUsers;
-    </script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Manage Users — AwesomeBank</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="styles.css">
 </head>
-
 <body>
-    <div class="container">
-        <h1 class="title">Manage Users</h1>
-        <div class="table-container">
-            <table class="table is-fullwidth is-striped">
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Username</th>
-                        <th>Role</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody id="user-table-body">
-                    <!-- User rows will be dynamically inserted here -->
-                </tbody>
-            </table>
-        </div>
-    </div>
-</body>
+  <div class="app-layout">
+    <div id="sidebar-container"></div>
 
+    <main class="main-content">
+      <header class="top-bar">
+        <div class="top-bar-title">
+          <h1>Manage Users</h1>
+          <p>View and edit all user accounts</p>
+        </div>
+        <div class="top-bar-actions">
+          <span class="badge badge-accent"><i class="fas fa-crown" style="margin-right:5px;"></i>Admin</span>
+        </div>
+      </header>
+
+      <div class="page-content">
+        <!-- Loading -->
+        <div id="loading-state" class="card flex-center" style="min-height:200px;">
+          <div style="text-align:center;">
+            <div class="spinner" style="margin:0 auto 14px;"></div>
+            <p class="text-muted">Loading users...</p>
+          </div>
+        </div>
+
+        <div id="users-table" style="display:none;">
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <div class="card-title"><i class="fas fa-users" style="margin-right:8px;color:var(--accent);"></i>All Users</div>
+                <div class="card-subtitle" id="users-count">0 users</div>
+              </div>
+            </div>
+            <div class="table-wrapper">
+              <table>
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Username</th>
+                    <th>Role</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="user-table-body"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="app.js"></script>
+  <script>
+    async function loadUsers() {
+      try {
+        const response = await fetch('manageuser.php');
+        const users = await response.json();
+
+        document.getElementById('loading-state').style.display = 'none';
+
+        if (response.ok) {
+          document.getElementById('users-count').textContent = `${users.length} user${users.length !== 1 ? 's' : ''}`;
+          const tbody = document.getElementById('user-table-body');
+          tbody.innerHTML = '';
+
+          users.forEach((user, i) => {
+            const row = document.createElement('tr');
+            row.className = 'fade-in';
+            row.style.animationDelay = `${i * 0.04}s`;
+            const isAdmin = user.role === 'admin';
+            row.innerHTML = `
+              <td style="font-family:monospace;color:var(--muted);">#${user.id}</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:10px;">
+                  <div style="width:32px;height:32px;background:${isAdmin ? 'var(--purple-light)' : 'var(--accent-light)'};color:${isAdmin ? 'var(--purple)' : 'var(--accent)'};border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;">${user.username.slice(0,2).toUpperCase()}</div>
+                  <span style="font-weight:500;">${user.username}</span>
+                </div>
+              </td>
+              <td>
+                <span class="badge ${isAdmin ? 'badge-purple' : 'badge-accent'}">
+                  <i class="fas ${isAdmin ? 'fa-crown' : 'fa-user'}" style="margin-right:5px;"></i>${user.role}
+                </span>
+              </td>
+              <td>
+                <a href="editProfile.html?user_id=${user.id}" class="btn btn-secondary btn-sm">
+                  <i class="fas fa-edit"></i> Edit
+                </a>
+              </td>`;
+            tbody.appendChild(row);
+          });
+
+          document.getElementById('users-table').style.display = 'block';
+        } else {
+          alert('Failed to load users.');
+        }
+      } catch (err) {
+        alert('An error occurred while loading users.');
+        document.getElementById('loading-state').style.display = 'none';
+      }
+    }
+
+    window.onload = () => initPage(() => loadUsers());
+  </script>
+</body>
 </html>

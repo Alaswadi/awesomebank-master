@@ -1,0 +1,20 @@
+AwesomeBank - Account Statement
+================================
+Account Number : 4111111111110002
+Account Holder : customer1
+Statement Date : 2026-03-15
+
+Transactions:
+-------------------------------------------------
+Date            | Type   | Amount   | Balance
+-------------------------------------------------
+2026-01-05      | Credit | $2000.00 | $2000.00
+2026-01-10      | Debit  | $1000.00 | $1000.00
+2026-02-01      | Credit |  $500.00 | $1500.00
+2026-02-14      | Debit  |  $200.00 | $1300.00
+2026-03-01      | Credit | $1000.00 | $2300.00
+-------------------------------------------------
+Closing Balance : $2300.00
+
+NOTE: This file is intentionally placed for path traversal demonstration.
+Try: ?file=../../etc/passwd  or  ?file=../../../windows/win.ini

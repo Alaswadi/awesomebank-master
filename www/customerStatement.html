@@ -1,112 +1,203 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Customer Statement</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
-    <style>
-        body {
-            background-color: #f4f4f9;
-        }
-
-        .container {
-            margin: 50px auto;
-            max-width: 600px;
-            text-align: center;
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-
-        .logo {
-            max-width: 150px;
-            margin: 0 auto 20px auto;
-        }
-
-        .error {
-            color: red;
-            margin-top: 10px;
-        }
-
-        .statement {
-            margin-top: 20px;
-            text-align: left;
-        }
-
-        h3 {
-            margin-bottom: 10px;
-            color: #363636;
-        }
-    </style>
-    <script>
-        async function fetchStatement() {
-            const accountId = document.getElementById('account-id').value;
-            const token = localStorage.getItem('token');
-
-            if (!accountId) {
-                alert('Please enter an account ID');
-                return;
-            }
-
-            try {
-                const response = await fetch(`customerStatement.php?account_id=${accountId}`, {
-                    method: 'GET',
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
-                });
-
-                const data = await response.json();
-
-                if (response.ok) {
-                    const statementDiv = document.getElementById('statement');
-                    statementDiv.innerHTML = '<h3>Transaction History</h3>';
-                    data.forEach(transaction => {
-                        const transactionDiv = `
-                            <p>
-                                <strong>Transaction ID:</strong> ${transaction.transaction_id}<br>
-                                <strong>Amount:</strong> ${transaction.amount}<br>
-                                <strong>Type:</strong> ${transaction.transaction_type}<br>
-                                <strong>Date:</strong> ${transaction.date}
-                            </p><hr>`;
-                        statementDiv.innerHTML += transactionDiv;
-                    });
-                } else {
-                    document.getElementById('error').textContent = data.message || 'Error fetching statement';
-                }
-            } catch (error) {
-                console.error('Error fetching statement:', error);
-                document.getElementById('error').textContent = 'An unexpected error occurred.';
-            }
-        }
-    </script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Statements — AwesomeBank</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="styles.css">
 </head>
-
 <body>
-    <div class="container">
-        <!-- Logo Section -->
-        <img src="logo.png" alt="Bank API Logo" class="logo">
+  <div class="app-layout">
+    <div id="sidebar-container"></div>
 
-        <!-- Title -->
-        <h1 class="title">Customer Statement</h1>
+    <main class="main-content">
+      <header class="top-bar">
+        <div class="top-bar-title">
+          <h1>Transaction History</h1>
+          <p>View your account statements and transactions</p>
+        </div>
+      </header>
 
-        <!-- Input Section -->
-        <div>
-            <label for="account-id" class="label">Account ID</label>
-            <input type="text" id="account-id" class="input" placeholder="Enter your account ID">
-            <button class="button is-primary" style="margin-top: 10px;" onclick="fetchStatement()">View
-                Statement</button>
+      <div class="page-content">
+        <!-- Search -->
+        <div class="card mb-20">
+          <div class="card-header mb-0" style="margin-bottom:0;">
+            <div>
+              <div class="card-title">Search Transactions</div>
+              <div class="card-subtitle">Enter an account ID to view its transaction history</div>
+            </div>
+          </div>
+          <div style="display:flex;gap:12px;align-items:flex-end;margin-top:16px;">
+            <div style="flex:1;" class="form-group mb-0">
+              <label class="form-label">Account ID</label>
+              <div class="form-input-wrapper">
+                <i class="fas fa-hashtag form-input-icon"></i>
+                <input type="text" id="account-id" class="form-input has-icon" placeholder="Enter account ID">
+              </div>
+            </div>
+            <button onclick="fetchStatement()" class="btn btn-accent btn-lg" style="white-space:nowrap;">
+              <i class="fas fa-search"></i> View Statement
+            </button>
+          </div>
         </div>
 
-        <!-- Error Message -->
-        <div id="error" class="error"></div>
+        <div id="alert-box" style="display:none;" class="alert alert-danger mb-16"></div>
 
-        <!-- Statement Section -->
-        <div id="statement" class="statement"></div>
-    </div>
+        <!-- Loading -->
+        <div id="loading-state" style="display:none;" class="card flex-center" style="min-height:150px;">
+          <div style="text-align:center;padding:32px;">
+            <div class="spinner" style="margin:0 auto 12px;"></div>
+            <p class="text-muted">Loading transactions...</p>
+          </div>
+        </div>
+
+        <!-- Summary + Results -->
+        <div id="results-container" style="display:none;">
+          <div class="stats-grid mb-20">
+            <div class="stat-card">
+              <div class="stat-icon blue"><i class="fas fa-list"></i></div>
+              <div><div class="stat-label">Total Transactions</div><div class="stat-value" id="total-count">0</div></div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon green"><i class="fas fa-arrow-down"></i></div>
+              <div><div class="stat-label">Total Credits</div><div class="stat-value text-success" id="total-credits">$0.00</div></div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon red"><i class="fas fa-arrow-up"></i></div>
+              <div><div class="stat-label">Total Debits</div><div class="stat-value text-danger" id="total-debits">$0.00</div></div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="flex-between mb-16">
+              <div>
+                <div class="card-title"><i class="fas fa-file-alt" style="margin-right:8px;color:var(--accent);"></i>Transaction History</div>
+                <div class="card-subtitle" id="transaction-count">0 transactions</div>
+              </div>
+              <button onclick="window.print()" class="btn btn-secondary btn-sm">
+                <i class="fas fa-print"></i> Print
+              </button>
+            </div>
+            <div class="table-wrapper">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Transaction</th>
+                    <th>ID</th>
+                    <th>Date</th>
+                    <th style="text-align:right;">Amount</th>
+                  </tr>
+                </thead>
+                <tbody id="transactions-body"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Empty State -->
+        <div id="empty-state" class="card" style="display:none;">
+          <div class="empty-state">
+            <div class="empty-state-icon"><i class="fas fa-inbox"></i></div>
+            <div class="empty-state-title">No Transactions Found</div>
+            <div class="empty-state-text">There are no transactions for this account yet.</div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="app.js"></script>
+  <script>
+    async function fetchStatement() {
+      const accountId = document.getElementById('account-id').value;
+      const alertBox = document.getElementById('alert-box');
+
+      alertBox.style.display = 'none';
+      document.getElementById('results-container').style.display = 'none';
+      document.getElementById('empty-state').style.display = 'none';
+
+      if (!accountId) {
+        alertBox.innerHTML = '<i class="fas fa-exclamation-circle"></i> Please enter an account ID.';
+        alertBox.style.display = 'flex';
+        return;
+      }
+
+      document.getElementById('loading-state').style.display = 'flex';
+
+      try {
+        const response = await fetch(`customerStatement.php?account_id=${accountId}`);
+        const data = await response.json();
+        document.getElementById('loading-state').style.display = 'none';
+
+        if (response.ok && Array.isArray(data) && data.length > 0) {
+          displayTransactions(data);
+        } else {
+          document.getElementById('empty-state').style.display = 'block';
+        }
+      } catch (err) {
+        document.getElementById('loading-state').style.display = 'none';
+        alertBox.innerHTML = '<i class="fas fa-exclamation-circle"></i> An unexpected error occurred.';
+        alertBox.style.display = 'flex';
+      }
+    }
+
+    function displayTransactions(transactions) {
+      let totalCredits = 0, totalDebits = 0;
+      const tbody = document.getElementById('transactions-body');
+      tbody.innerHTML = '';
+
+      transactions.forEach((tx, i) => {
+        const amount = parseFloat(tx.amount) || 0;
+        const isCredit = tx.transaction_type === 'credit';
+        if (isCredit) totalCredits += amount; else totalDebits += amount;
+
+        const row = document.createElement('tr');
+        row.className = 'fade-in';
+        row.style.animationDelay = `${i * 0.04}s`;
+        row.innerHTML = `
+          <td>
+            <div style="display:flex;align-items:center;gap:12px;">
+              <div class="tx-icon ${tx.transaction_type}">
+                <i class="fas ${isCredit ? 'fa-arrow-down' : 'fa-arrow-up'}"></i>
+              </div>
+              <span style="font-weight:600;text-transform:capitalize;">${tx.transaction_type}</span>
+            </div>
+          </td>
+          <td style="font-family:monospace;font-size:12.5px;color:var(--muted);">#${tx.transaction_id}</td>
+          <td style="color:var(--secondary);font-size:13px;">${formatDate(tx.date)}</td>
+          <td style="text-align:right;">
+            <span class="tx-amount ${tx.transaction_type}">
+              ${isCredit ? '+' : '-'}${formatCurrency(amount)}
+            </span>
+          </td>`;
+        tbody.appendChild(row);
+      });
+
+      document.getElementById('total-count').textContent = transactions.length;
+      document.getElementById('total-credits').textContent = formatCurrency(totalCredits);
+      document.getElementById('total-debits').textContent = formatCurrency(totalDebits);
+      document.getElementById('transaction-count').textContent = `${transactions.length} transaction${transactions.length !== 1 ? 's' : ''}`;
+      document.getElementById('results-container').style.display = 'block';
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('account-id').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') fetchStatement();
+      });
+    });
+
+    window.onload = () => initPage(() => {
+      const params = new URLSearchParams(window.location.search);
+      const accountId = params.get('account_id');
+      if (accountId) {
+        document.getElementById('account-id').value = accountId;
+        fetchStatement();
+      }
+    });
+  </script>
 </body>
-
 </html>

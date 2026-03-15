@@ -1,111 +1,126 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Enable Two-Factor Authentication</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
-    <style>
-        body {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-            background-color: #f4f4f9;
-        }
-        .container {
-            text-align: center;
-            max-width: 400px;
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-        .logo {
-            max-width: 100px;
-            margin: 20px auto;
-        }
-        .title {
-            margin-bottom: 20px;
-        }
-        .field {
-            margin-bottom: 15px;
-        }
-        .button {
-            width: 100%;
-        }
-    </style>
-    <script>
-        async function enable2FA(event) {
-            event.preventDefault();
-            const otp = document.getElementById('otp').value;
-
-            try {
-                const response = await fetch('enable2FA.php', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ otp }),
-                });
-
-                const data = await response.json();
-
-                if (response.ok) {
-                    alert(data.message || 'Two-Factor Authentication enabled successfully!');
-                } else {
-                    alert(data.message || 'Failed to enable Two-Factor Authentication.');
-                }
-            } catch (error) {
-                alert('An error occurred. Please try again.');
-            }
-        }
-
-        async function requestOTP() {
-            try {
-                const response = await fetch('requestOTP.php', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                });
-
-                const data = await response.json();
-
-                if (response.ok) {
-                    alert('OTP has been sent to your phone.');
-                    console.log('Debug: OTP ->', data.otp); // Display OTP in console for exploitation
-                } else {
-                    alert(data.message || 'Failed to send OTP.');
-                }
-            } catch (error) {
-                alert('An error occurred while requesting OTP.');
-            }
-        }
-
-        window.onload = requestOTP;
-    </script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>2FA Settings — AwesomeBank</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div class="container">
-        <!-- Logo Section -->
-        <img src="logo.png" alt="Bank API Logo" class="logo">
+  <div class="app-layout">
+    <div id="sidebar-container"></div>
 
-        <!-- 2FA Form -->
-        <h1 class="title">Enable Two-Factor Authentication</h1>
-        <p>We have sent an OTP to your registered phone number. Please enter it below to enable 2FA.</p>
-        <form id="2fa-form" onsubmit="enable2FA(event)">
-            <div class="field">
-                <label class="label">Enter OTP</label>
-                <div class="control">
-                    <input class="input" type="text" id="otp" placeholder="Enter your OTP" required>
+    <main class="main-content">
+      <header class="top-bar">
+        <div class="top-bar-title">
+          <h1>Two-Factor Authentication</h1>
+          <p>Enhance your account security</p>
+        </div>
+      </header>
+
+      <div class="page-content">
+        <div style="max-width:480px;">
+
+          <div id="alert-box" style="display:none;" class="alert mb-16"></div>
+
+          <!-- Info Banner -->
+          <div class="card mb-16" style="background:var(--accent-light);border-color:var(--accent);">
+            <div style="display:flex;gap:14px;align-items:flex-start;">
+              <div class="stat-icon blue" style="flex-shrink:0;"><i class="fas fa-shield-alt"></i></div>
+              <div>
+                <div style="font-size:14px;font-weight:600;color:var(--primary);margin-bottom:4px;">Protect Your Account</div>
+                <div style="font-size:13px;color:var(--secondary);">Two-Factor Authentication adds an extra layer of security. An OTP has been sent to your registered phone number.</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-title mb-16"><i class="fas fa-mobile-alt" style="margin-right:8px;color:var(--accent);"></i>Enter OTP</div>
+
+            <form id="2fa-form" onsubmit="enable2FA(event)">
+              <div class="form-group">
+                <label class="form-label">One-Time Password</label>
+                <div class="form-input-wrapper">
+                  <i class="fas fa-key form-input-icon"></i>
+                  <input class="form-input has-icon" type="text" id="otp" placeholder="Enter your OTP" required
+                    style="font-size:20px;letter-spacing:6px;text-align:center;font-family:monospace;">
                 </div>
-            </div>
-            <div class="field">
-                <button type="submit" class="button is-primary">Enable 2FA</button>
-            </div>
-        </form>
-    </div>
+                <p class="form-hint"><i class="fas fa-info-circle" style="margin-right:5px;"></i>Check your registered phone for the OTP.</p>
+              </div>
+
+              <button type="submit" id="enable-btn" class="btn btn-accent btn-full btn-lg">
+                <i class="fas fa-shield-alt"></i> Enable 2FA
+              </button>
+            </form>
+          </div>
+
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="app.js"></script>
+  <script>
+    async function enable2FA(event) {
+      event.preventDefault();
+      const otp = document.getElementById('otp').value;
+      const btn = document.getElementById('enable-btn');
+      const alertBox = document.getElementById('alert-box');
+
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enabling...';
+      alertBox.style.display = 'none';
+
+      try {
+        const response = await fetch('enable2FA.php', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ otp }),
+        });
+        const data = await response.json();
+
+        if (response.ok) {
+          alertBox.className = 'alert alert-success mb-16';
+          alertBox.innerHTML = `<i class="fas fa-check-circle"></i> ${data.message || 'Two-Factor Authentication enabled successfully!'}`;
+          alertBox.style.display = 'flex';
+        } else {
+          alertBox.className = 'alert alert-danger mb-16';
+          alertBox.innerHTML = `<i class="fas fa-exclamation-circle"></i> ${data.message || 'Failed to enable 2FA.'}`;
+          alertBox.style.display = 'flex';
+        }
+      } catch (err) {
+        alertBox.className = 'alert alert-danger mb-16';
+        alertBox.innerHTML = '<i class="fas fa-exclamation-circle"></i> An error occurred. Please try again.';
+        alertBox.style.display = 'flex';
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-shield-alt"></i> Enable 2FA';
+      }
+    }
+
+    async function requestOTP() {
+      try {
+        const response = await fetch('requestOTP.php', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+        });
+        const data = await response.json();
+        if (!response.ok) {
+          const alertBox = document.getElementById('alert-box');
+          alertBox.className = 'alert alert-warning mb-16';
+          alertBox.innerHTML = `<i class="fas fa-exclamation-triangle"></i> ${data.message || 'Failed to send OTP.'}`;
+          alertBox.style.display = 'flex';
+        }
+      } catch (err) {
+        // Silently fail on OTP request error
+      }
+    }
+
+    window.onload = () => initPage(() => requestOTP());
+  </script>
 </body>
 </html>

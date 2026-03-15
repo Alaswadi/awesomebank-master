@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Network Diagnostics — AwesomeBank</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app-layout">
+    <div id="sidebar-container"></div>
+
+    <main class="main-content">
+      <header class="top-bar">
+        <div class="top-bar-title">
+          <h1>Network Diagnostics</h1>
+          <p>Ping a host to check connectivity</p>
+        </div>
+      </header>
+
+      <div class="page-content">
+        <div style="max-width:560px;">
+
+          <div id="alert-box" style="display:none;" class="alert mb-16"></div>
+
+          <div class="card mb-16">
+            <h2 style="font-size:16px;font-weight:700;color:var(--primary);margin-bottom:20px;">
+              <i class="fas fa-network-wired" style="margin-right:8px;color:var(--accent);"></i>
+              Ping Utility
+            </h2>
+
+            <form id="ping-form" onsubmit="runPing(event)">
+              <div class="form-group">
+                <label class="form-label">Host / IP Address</label>
+                <div class="form-input-wrapper">
+                  <i class="fas fa-server form-input-icon"></i>
+                  <input class="form-input has-icon" type="text" id="host"
+                         placeholder="e.g. 8.8.8.8 or example.com" required>
+                </div>
+                <p class="form-hint">Enter an IP address or hostname to ping.</p>
+              </div>
+
+              <button type="submit" id="ping-btn" class="btn btn-accent btn-full btn-lg">
+                <i class="fas fa-satellite-dish"></i> Run Ping
+              </button>
+            </form>
+          </div>
+
+          <div class="card" id="result-card" style="display:none;">
+            <h3 style="font-size:14px;font-weight:600;color:var(--muted);margin-bottom:12px;">
+              <i class="fas fa-terminal" style="margin-right:6px;"></i>Output
+            </h3>
+            <pre id="ping-output"
+                 style="background:#0f1117;color:#e2e8f0;padding:16px;border-radius:8px;
+                        font-size:13px;overflow-x:auto;white-space:pre-wrap;margin:0;"></pre>
+          </div>
+
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="app.js"></script>
+  <script>
+    async function runPing(event) {
+      event.preventDefault();
+      const host   = document.getElementById('host').value.trim();
+      const btn    = document.getElementById('ping-btn');
+      const card   = document.getElementById('result-card');
+      const output = document.getElementById('ping-output');
+
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Pinging...';
+      card.style.display = 'none';
+
+      try {
+        const token = localStorage.getItem('token');
+        const res   = await fetch('ping.php', {
+          method:  'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+          body:    JSON.stringify({ host })
+        });
+        const data = await res.json();
+
+        output.textContent = data.output || '(no output)';
+        card.style.display = 'block';
+      } catch (err) {
+        showAlert('Request failed: ' + err.message, 'danger');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-satellite-dish"></i> Run Ping';
+      }
+    }
+
+    function showAlert(message, type) {
+      const el = document.getElementById('alert-box');
+      el.className = `alert alert-${type} mb-16`;
+      el.innerHTML = `<i class="fas fa-exclamation-circle"></i> ${message}`;
+      el.style.display = 'flex';
+    }
+
+    window.onload = () => initPage(() => {});
+  </script>
+</body>
+</html>

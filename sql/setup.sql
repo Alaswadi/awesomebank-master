@@ -9,7 +9,8 @@ CREATE TABLE users (
     id INT AUTO_INCREMENT PRIMARY KEY,
     username VARCHAR(255) NOT NULL UNIQUE,
     password VARCHAR(255) NOT NULL,
-    role VARCHAR(50) NOT NULL
+    role VARCHAR(50) NOT NULL,
+    bio VARCHAR(500) DEFAULT NULL   -- Vulnerability #1: Stored XSS — bio is stored and rendered unsanitized
 );
 
 -- Create accounts table
@@ -53,10 +54,14 @@ CREATE TABLE otps (
 
 
 -- Insert initial admin and customer data
-INSERT INTO users (username, password, role) VALUES 
-('admin', 'password', 'admin'),
-('customer1', '123456789', 'customer'),
-('customer2', '654321', 'customer');
+-- Vulnerability #10: Weak Crypto — passwords stored as MD5 hashes (easily crackable)
+-- admin:    password  -> 5f4dcc3b5aa765d61d8327deb882cf99
+-- customer1: 123456789 -> 25f9e794323b453885f5181f1b624d0b
+-- customer2: 654321    -> c6f057b86584942e415435ffb1fa93d1
+INSERT INTO users (username, password, role) VALUES
+('admin',     '5f4dcc3b5aa765d61d8327deb882cf99', 'admin'),
+('customer1', '25f9e794323b453885f5181f1b624d0b', 'customer'),
+('customer2', 'c6f057b86584942e415435ffb1fa93d1', 'customer');
 
 -- Create accounts for initial users
 INSERT INTO accounts (account_id, user_id, account_type, balance) VALUES 

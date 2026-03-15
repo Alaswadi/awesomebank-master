@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Import Transactions — AwesomeBank</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app-layout">
+    <div id="sidebar-container"></div>
+
+    <main class="main-content">
+      <header class="top-bar">
+        <div class="top-bar-title">
+          <h1>Import Transactions</h1>
+          <p>Upload an XML file to import transaction records</p>
+        </div>
+      </header>
+
+      <div class="page-content">
+        <div style="max-width:640px;">
+
+          <div id="alert-box" style="display:none;" class="alert mb-16"></div>
+
+          <div class="card mb-16">
+            <h2 style="font-size:16px;font-weight:700;color:var(--primary);margin-bottom:20px;">
+              <i class="fas fa-file-import" style="margin-right:8px;color:var(--accent);"></i>
+              XML Transaction Import
+            </h2>
+
+            <form id="import-form" onsubmit="importTransactions(event)">
+              <div class="form-group">
+                <label class="form-label">XML Data</label>
+                <textarea class="form-input" id="xml-input" rows="10"
+                  placeholder="Paste your XML here...
+&#10;Example:
+&lt;?xml version=&quot;1.0&quot;?&gt;
+&lt;transactions&gt;
+  &lt;transaction&gt;
+    &lt;amount&gt;100.00&lt;/amount&gt;
+    &lt;type&gt;credit&lt;/type&gt;
+    &lt;description&gt;Salary&lt;/description&gt;
+    &lt;date&gt;2026-03-01&lt;/date&gt;
+  &lt;/transaction&gt;
+&lt;/transactions&gt;"
+                  style="font-family:monospace;font-size:13px;" required></textarea>
+                <p class="form-hint">Accepts standard XML transaction format.</p>
+              </div>
+
+              <button type="submit" id="import-btn" class="btn btn-accent btn-full btn-lg">
+                <i class="fas fa-upload"></i> Import Transactions
+              </button>
+            </form>
+          </div>
+
+          <div class="card" id="result-card" style="display:none;">
+            <h3 style="font-size:14px;font-weight:600;color:var(--muted);margin-bottom:12px;">
+              <i class="fas fa-check-circle" style="margin-right:6px;color:#22c55e;"></i>Import Result
+            </h3>
+            <div id="result-content"></div>
+          </div>
+
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="app.js"></script>
+  <script>
+    async function importTransactions(event) {
+      event.preventDefault();
+      const xml    = document.getElementById('xml-input').value;
+      const btn    = document.getElementById('import-btn');
+      const card   = document.getElementById('result-card');
+      const result = document.getElementById('result-content');
+
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Importing...';
+      card.style.display = 'none';
+
+      try {
+        const token = localStorage.getItem('token');
+        const res   = await fetch('importTransactions.php', {
+          method:  'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+          body:    JSON.stringify({ xml })
+        });
+        const data = await res.json();
+
+        if (res.ok) {
+          let html = `<p style="color:#22c55e;font-weight:600;margin-bottom:12px;">${data.message} (${data.count} record(s))</p>`;
+          if (data.transactions && data.transactions.length > 0) {
+            html += '<table style="width:100%;border-collapse:collapse;font-size:13px;">';
+            html += '<thead><tr style="border-bottom:2px solid var(--border);">';
+            html += '<th style="text-align:left;padding:8px;">Amount</th>';
+            html += '<th style="text-align:left;padding:8px;">Type</th>';
+            html += '<th style="text-align:left;padding:8px;">Description</th>';
+            html += '<th style="text-align:left;padding:8px;">Date</th>';
+            html += '</tr></thead><tbody>';
+            data.transactions.forEach(t => {
+              html += `<tr style="border-bottom:1px solid var(--border);">
+                <td style="padding:8px;">${t.amount}</td>
+                <td style="padding:8px;">${t.type}</td>
+                <td style="padding:8px;">${t.description}</td>
+                <td style="padding:8px;">${t.date}</td>
+              </tr>`;
+            });
+            html += '</tbody></table>';
+          }
+          result.innerHTML = html;
+          card.style.display = 'block';
+        } else {
+          showAlert(data.message || 'Import failed', 'danger');
+        }
+      } catch (err) {
+        showAlert('Request failed: ' + err.message, 'danger');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-upload"></i> Import Transactions';
+      }
+    }
+
+    function showAlert(message, type) {
+      const el = document.getElementById('alert-box');
+      el.className = `alert alert-${type} mb-16`;
+      el.innerHTML = `<i class="fas fa-exclamation-circle"></i> ${message}`;
+      el.style.display = 'flex';
+    }
+
+    window.onload = () => initPage(() => {});
+  </script>
+</body>
+</html>

@@ -1,97 +1,117 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
-    <style>
-        body {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-            background-color: #f4f4f9;
-        }
-        .container {
-            max-width: 400px;
-            width: 100%;
-            text-align: center;
-            background: #ffffff;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-        .logo {
-            max-width: 100px;
-            margin: 20px auto;
-        }
-        .title {
-            margin-bottom: 20px;
-            color: #363636;
-        }
-        .field {
-            margin-bottom: 15px;
-        }
-        .button {
-            width: 100%;
-        }
-    </style>
-    <script>
-        async function login(event) {
-            event.preventDefault();
-            const username = document.getElementById('username').value;
-            const password = document.getElementById('password').value;
-
-            try {
-                const response = await fetch('login.php', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ username, password }),
-                });
-
-                const data = await response.json();
-
-                if (response.ok) {
-                    localStorage.setItem('token', data.token);
-                    alert('Login successful! Redirecting to dashboard...');
-                    window.location.href = 'dashboard.html';
-                } else {
-                    alert(data.message || 'Login failed!');
-                }
-            } catch (error) {
-                alert('An error occurred. Please try again.');
-            }
-        }
-    </script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sign In — AwesomeBank</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div class="container">
-        <!-- Logo Section -->
-        <img src="logo.png" alt="Bank API Logo" class="logo">
+  <div class="auth-page">
+    <div class="auth-card fade-in">
 
-        <!-- Login Form -->
-        <h1 class="title">Login</h1>
-        <form onsubmit="login(event)">
-            <div class="field">
-                <label class="label">Username</label>
-                <div class="control">
-                    <input id="username" class="input" type="text" placeholder="Enter username" required>
-                </div>
-            </div>
-            <div class="field">
-                <label class="label">Password</label>
-                <div class="control">
-                    <input id="password" class="input" type="password" placeholder="Enter password" required>
-                </div>
-            </div>
-            <div class="field">
-                <button type="submit" class="button is-primary">Login</button>
-            </div>
-        </form>
+      <div class="auth-logo">
+        <div class="auth-logo-icon">AB</div>
+        <span class="auth-logo-text">AwesomeBank</span>
+      </div>
+
+      <h1 class="auth-heading">Welcome back</h1>
+      <p class="auth-subheading">Sign in to access your account</p>
+
+      <div id="alert-box" style="display:none;" class="alert"></div>
+
+      <form onsubmit="login(event)">
+        <div class="form-group">
+          <label class="form-label">Username</label>
+          <div class="form-input-wrapper">
+            <i class="fas fa-user form-input-icon"></i>
+            <input id="username" class="form-input has-icon" type="text" placeholder="Enter your username" required autocomplete="username">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Password</label>
+          <div class="form-input-wrapper">
+            <i class="fas fa-lock form-input-icon"></i>
+            <input id="password" class="form-input has-icon" type="password" placeholder="Enter your password" required autocomplete="current-password">
+          </div>
+        </div>
+
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+          <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--secondary);cursor:pointer;">
+            <input type="checkbox" id="remember" style="accent-color:var(--accent);">
+            Remember me
+          </label>
+          <a href="#" style="font-size:13px;color:var(--accent);font-weight:500;">Forgot password?</a>
+        </div>
+
+        <button type="submit" id="submit-btn" class="btn btn-accent btn-full btn-lg">Sign In</button>
+      </form>
+
+      <div class="auth-divider"><span>Demo Accounts</span></div>
+
+      <div class="demo-box">
+        <div class="demo-row">
+          <span class="demo-label">Admin</span>
+          <span class="demo-value">admin / password</span>
+        </div>
+        <div class="demo-row">
+          <span class="demo-label">Customer</span>
+          <span class="demo-value">customer1 / 123456789</span>
+        </div>
+      </div>
+
+      <p class="auth-footer">Don't have an account? <a href="signup.html">Create one</a></p>
     </div>
+  </div>
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <script>
+    async function login(event) {
+      event.preventDefault();
+      const username = document.getElementById('username').value;
+      const password = document.getElementById('password').value;
+      const alertBox = document.getElementById('alert-box');
+      const btn = document.getElementById('submit-btn');
+
+      alertBox.style.display = 'none';
+      btn.disabled = true;
+      btn.textContent = 'Signing in...';
+
+      try {
+        const response = await fetch('login.php', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password }),
+        });
+        const data = await response.json();
+
+        if (response.ok) {
+          localStorage.setItem('token', data.token);
+          alertBox.className = 'alert alert-success';
+          alertBox.innerHTML = '<i class="fas fa-check-circle"></i> Login successful! Redirecting...';
+          alertBox.style.display = 'flex';
+          // Vulnerability #7: Open Redirect — redirect_url is returned from the server
+          // and followed without any origin validation, allowing redirection to arbitrary URLs.
+          const destination = data.redirect_url || 'dashboard.html';
+          setTimeout(() => window.location.href = destination, 900);
+        } else {
+          alertBox.className = 'alert alert-danger';
+          alertBox.innerHTML = `<i class="fas fa-exclamation-circle"></i> ${data.message || 'Invalid credentials. Please try again.'}`;
+          alertBox.style.display = 'flex';
+        }
+      } catch (err) {
+        alertBox.className = 'alert alert-danger';
+        alertBox.innerHTML = '<i class="fas fa-exclamation-circle"></i> An error occurred. Please try again.';
+        alertBox.style.display = 'flex';
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Sign In';
+      }
+    }
+  </script>
 </body>
 </html>

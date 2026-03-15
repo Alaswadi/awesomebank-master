@@ -1,90 +1,94 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Upload Pictures</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
-    <style>
-        body {
-            background-color: #f4f4f9;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-        }
-        .container {
-            background: white;
-            border-radius: 10px;
-            padding: 20px;
-            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
-            max-width: 400px;
-            text-align: center;
-        }
-        .logo {
-            max-width: 100px;
-            margin-bottom: 20px;
-        }
-        .hint {
-            color: #888;
-            font-style: italic;
-            margin-bottom: 20px;
-        }
-        .hint span {
-            color: #e63946;
-            font-weight: bold;
-        }
-    </style>
-    <script>
-        function validateFile(event) {
-            const fileInput = event.target;
-            const file = fileInput.files[0];
-
-            if (!file) {
-                alert("No file selected!");
-                return false;
-            }
-
-            const validExtensions = ["image/jpeg", "image/png", "image/gif"];
-            if (!validExtensions.includes(file.type)) {
-                alert("Only image files are allowed!");
-                fileInput.value = ""; // Reset the input
-                return false;
-            }
-
-            return true;
-        }
-    </script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Upload Pictures — AwesomeBank</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div class="container">
-        <!-- Logo Section -->
-        <img src="logo.png" alt="Bank API Logo" class="logo">
+  <div class="app-layout">
+    <div id="sidebar-container"></div>
 
-        <!-- Title -->
-        <h1 class="title">Upload Pictures</h1>
+    <main class="main-content">
+      <header class="top-bar">
+        <div class="top-bar-title">
+          <h1>Upload Pictures</h1>
+          <p>Upload images for the website banner</p>
+        </div>
+      </header>
 
-        <!-- Funny Hint -->
-        <p class="hint">
-            This feature is for <span>updating the website banner</span>. 
-            Our <span>genius programmer</span> is still testing it. 
-            Don’t try anything funny, or he might break the whole website again!
-        </p>
+      <div class="page-content">
+        <div style="max-width:480px;">
 
-        <!-- Upload Form -->
-        <form id="upload-form" action="uploadPictures.php" method="POST" enctype="multipart/form-data">
-            <div class="field">
-                <label class="label">Choose an image file:</label>
-                <div class="control">
-                    <input class="input" type="file" name="file" id="file" onchange="validateFile(event)" required>
+          <div id="message" style="display:none;" class="alert mb-16"></div>
+
+          <div class="card">
+            <div class="card-title mb-4"><i class="fas fa-cloud-upload-alt" style="margin-right:8px;color:var(--accent);"></i>Image Upload</div>
+            <div class="card-subtitle mb-16">Accepted formats: JPEG, PNG, GIF</div>
+
+            <form id="upload-form" action="uploadPictures.php" method="POST" enctype="multipart/form-data">
+              <div class="form-group">
+                <label class="form-label">Select Image File</label>
+                <div style="border:2px dashed var(--border);border-radius:var(--radius);padding:32px;text-align:center;transition:border-color var(--transition);" id="drop-zone">
+                  <div style="font-size:40px;color:var(--muted);margin-bottom:12px;"><i class="fas fa-image"></i></div>
+                  <div style="font-size:14px;font-weight:500;color:var(--primary);margin-bottom:4px);">Choose a file</div>
+                  <div style="font-size:12.5px;color:var(--muted);margin-bottom:16px;">JPEG, PNG, or GIF up to 10MB</div>
+                  <input class="form-input" type="file" name="file" id="file" accept="image/jpeg,image/png,image/gif" onchange="validateFile(event)" required style="width:auto;">
                 </div>
-            </div>
-            <button class="button is-primary" type="submit">Upload</button>
-        </form>
+              </div>
 
-        <!-- Error/Message Section -->
-        <div id="message" class="error"></div>
-    </div>
+              <div id="file-preview" style="display:none;" class="mb-16">
+                <img id="preview-img" style="max-width:100%;border-radius:var(--radius);border:1px solid var(--border);" alt="Preview">
+              </div>
+
+              <button class="btn btn-accent btn-full btn-lg" type="submit">
+                <i class="fas fa-upload"></i> Upload Image
+              </button>
+            </form>
+          </div>
+
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="app.js"></script>
+  <script>
+    function validateFile(event) {
+      const fileInput = event.target;
+      const file = fileInput.files[0];
+      const msgEl = document.getElementById('message');
+
+      if (!file) return false;
+
+      const validTypes = ['image/jpeg', 'image/png', 'image/gif'];
+      if (!validTypes.includes(file.type)) {
+        msgEl.className = 'alert alert-danger mb-16';
+        msgEl.innerHTML = '<i class="fas fa-exclamation-circle"></i> Only image files (JPEG, PNG, GIF) are allowed!';
+        msgEl.style.display = 'flex';
+        fileInput.value = '';
+        document.getElementById('file-preview').style.display = 'none';
+        return false;
+      }
+
+      msgEl.style.display = 'none';
+
+      // Show preview
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        document.getElementById('preview-img').src = e.target.result;
+        document.getElementById('file-preview').style.display = 'block';
+      };
+      reader.readAsDataURL(file);
+      return true;
+    }
+
+    window.onload = () => initPage(() => {});
+  </script>
 </body>
 </html>

@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Preferences — AwesomeBank</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app-layout">
+    <div id="sidebar-container"></div>
+
+    <main class="main-content">
+      <header class="top-bar">
+        <div class="top-bar-title">
+          <h1>Preferences</h1>
+          <p>Manage your account preferences</p>
+        </div>
+      </header>
+
+      <div class="page-content">
+        <div style="max-width:560px;">
+
+          <div id="alert-box" style="display:none;" class="alert mb-16"></div>
+
+          <div class="card mb-16">
+            <h2 style="font-size:16px;font-weight:700;color:var(--primary);margin-bottom:20px;">
+              <i class="fas fa-sliders-h" style="margin-right:8px;color:var(--accent);"></i>
+              User Preferences
+            </h2>
+
+            <form id="prefs-form" onsubmit="savePreferences(event)">
+              <div class="form-group">
+                <label class="form-label">Theme</label>
+                <select class="form-select" id="pref-theme">
+                  <option value="light">Light</option>
+                  <option value="dark">Dark</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Language</label>
+                <select class="form-select" id="pref-language">
+                  <option value="en">English</option>
+                  <option value="es">Spanish</option>
+                  <option value="fr">French</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Currency</label>
+                <select class="form-select" id="pref-currency">
+                  <option value="USD">USD — US Dollar</option>
+                  <option value="EUR">EUR — Euro</option>
+                  <option value="GBP">GBP — British Pound</option>
+                </select>
+              </div>
+
+              <button type="submit" id="save-btn" class="btn btn-accent btn-full btn-lg">
+                <i class="fas fa-save"></i> Save Preferences
+              </button>
+            </form>
+          </div>
+
+          <!-- Advanced / Debug section — exposes the raw serialized payload -->
+          <div class="card mb-16">
+            <h2 style="font-size:16px;font-weight:700;color:var(--primary);margin-bottom:20px;">
+              <i class="fas fa-code" style="margin-right:8px;color:var(--accent);"></i>
+              Advanced — Raw Serialized Import
+            </h2>
+            <p style="font-size:13px;color:var(--muted);margin-bottom:16px;">
+              You can import preferences directly using a PHP serialized string.
+              This feature is intended for backup/restore purposes.
+            </p>
+            <div class="form-group">
+              <label class="form-label">Serialized Preferences</label>
+              <textarea class="form-input" id="raw-prefs" rows="4"
+                placeholder='O:15:"UserPreferences":3:{s:5:"theme";s:4:"dark";s:8:"language";s:2:"en";s:8:"currency";s:3:"USD";}'
+                style="font-family:monospace;font-size:13px;"></textarea>
+              <p class="form-hint">Paste a PHP serialized UserPreferences object.</p>
+            </div>
+            <button onclick="importRawPrefs()" class="btn btn-accent btn-full">
+              <i class="fas fa-file-import"></i> Import Raw Preferences
+            </button>
+          </div>
+
+          <div class="card" id="result-card" style="display:none;">
+            <h3 style="font-size:14px;font-weight:600;color:var(--muted);margin-bottom:12px;">
+              <i class="fas fa-check-circle" style="margin-right:6px;color:#22c55e;"></i>Saved Preferences
+            </h3>
+            <pre id="result-output"
+                 style="background:#0f1117;color:#e2e8f0;padding:16px;border-radius:8px;
+                        font-size:13px;overflow-x:auto;white-space:pre-wrap;margin:0;"></pre>
+          </div>
+
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="app.js"></script>
+  <script>
+    function buildSerializedPrefs() {
+      const theme    = document.getElementById('pref-theme').value;
+      const language = document.getElementById('pref-language').value;
+      const currency = document.getElementById('pref-currency').value;
+      // Build a PHP serialized UserPreferences object from the form values
+      return `O:15:"UserPreferences":4:{s:5:"theme";s:${theme.length}:"${theme}";s:8:"language";s:${language.length}:"${language}";s:8:"currency";s:${currency.length}:"${currency}";s:6:"notify";b:1;}`;
+    }
+
+    async function savePreferences(event) {
+      event.preventDefault();
+      const prefs = buildSerializedPrefs();
+      await sendPrefs(prefs);
+    }
+
+    async function importRawPrefs() {
+      const prefs = document.getElementById('raw-prefs').value.trim();
+      if (!prefs) {
+        showAlert('Please enter a serialized preferences string.', 'danger');
+        return;
+      }
+      await sendPrefs(prefs);
+    }
+
+    async function sendPrefs(prefs) {
+      const btn  = document.getElementById('save-btn');
+      const card = document.getElementById('result-card');
+      const out  = document.getElementById('result-output');
+
+      try {
+        const token = localStorage.getItem('token');
+        const res   = await fetch('preferences.php', {
+          method:  'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+          body:    JSON.stringify({ prefs })
+        });
+        const data = await res.json();
+
+        if (res.ok) {
+          out.textContent = JSON.stringify(data, null, 2);
+          card.style.display = 'block';
+          showAlert(data.message || 'Preferences saved!', 'success');
+        } else {
+          showAlert(data.message || 'Failed to save preferences', 'danger');
+        }
+      } catch (err) {
+        showAlert('Request failed: ' + err.message, 'danger');
+      }
+    }
+
+    function showAlert(message, type) {
+      const el = document.getElementById('alert-box');
+      el.className = `alert alert-${type} mb-16`;
+      el.innerHTML = `<i class="fas fa-${type === 'success' ? 'check' : 'exclamation'}-circle"></i> ${message}`;
+      el.style.display = 'flex';
+    }
+
+    window.onload = () => initPage(() => {});
+  </script>
+</body>
+</html>

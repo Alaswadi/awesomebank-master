@@ -1,68 +1,92 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>System Settings</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
-    <style>
-        body {
-            background-color: #f4f4f9;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-        }
-        .container {
-            text-align: center;
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
-            max-width: 400px;
-        }
-        .logo {
-            max-width: 100px;
-            margin-bottom: 20px;
-        }
-        .hint {
-            color: #888;
-            font-style: italic;
-            margin-bottom: 20px;
-        }
-        .funny-comment {
-            color: #e63946;
-            font-weight: bold;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>System Settings — AwesomeBank</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div class="container">
-        <!-- Logo Section -->
-        <img src="logo.png" alt="Bank API Logo" class="logo">
+  <div class="app-layout">
+    <div id="sidebar-container"></div>
 
-        <!-- Title -->
-        <h1 class="title">System Settings</h1>
+    <main class="main-content">
+      <header class="top-bar">
+        <div class="top-bar-title">
+          <h1>System Settings</h1>
+          <p>Application configuration and preferences</p>
+        </div>
+        <div class="top-bar-actions">
+          <span class="badge badge-accent"><i class="fas fa-crown" style="margin-right:5px;"></i>Admin</span>
+        </div>
+      </header>
 
-        <!-- Under Construction Message -->
-        <p class="hint">
-            This section is <span class="funny-comment">under construction</span>. 
-            Our developers are probably napping or stuck in a debugging loop!
-        </p>
+      <div class="page-content">
+        <div style="max-width:600px;">
 
-        <p class="hint">
-            Don’t worry, it’ll be ready soon. Until then, enjoy this placeholder text and pretend it’s doing something important.
-        </p>
+          <!-- Under Construction -->
+          <div class="card mb-20">
+            <div style="text-align:center;padding:32px 16px;">
+              <div style="width:72px;height:72px;background:var(--warning-light);color:var(--warning);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:30px;margin:0 auto 20px;">
+                <i class="fas fa-tools"></i>
+              </div>
+              <div style="font-size:20px;font-weight:700;color:var(--primary);margin-bottom:8px;">Under Construction</div>
+              <div style="font-size:14px;color:var(--secondary);line-height:1.7;max-width:360px;margin:0 auto 24px;">
+                System Settings is currently being built. Advanced configuration options will be available here soon.
+              </div>
+              <a href="dashboard.html" class="btn btn-accent btn-lg">
+                <i class="fas fa-home"></i> Back to Dashboard
+              </a>
+            </div>
+          </div>
 
-        <!-- 
-            Important API Keys (Do not share!):
-            - Payment Gateway API Key: sk_test_51H8V1K0ZgBzKzQg2Yp...
-            - Exchange Rates API Key: d645s-kj2as-38dnk
-            - SMS Service API Key: asjdf-82394-asdkf-saj38
-        -->
+          <!-- Settings Placeholders -->
+          <div class="section-title">Available Settings</div>
+          <div class="card">
+            <div style="display:flex;flex-direction:column;gap:0;">
+              <div class="detail-row" style="padding:16px;">
+                <div>
+                  <div style="font-weight:600;color:var(--primary);margin-bottom:2px;">Payment Gateway</div>
+                  <div style="font-size:12.5px;color:var(--muted);">Configure payment processing settings</div>
+                </div>
+                <span class="badge badge-warning">Coming Soon</span>
+              </div>
+              <div class="detail-row" style="padding:16px;">
+                <div>
+                  <div style="font-weight:600;color:var(--primary);margin-bottom:2px;">SMS Service</div>
+                  <div style="font-size:12.5px;color:var(--muted);">Manage SMS notifications and OTP delivery</div>
+                </div>
+                <span class="badge badge-warning">Coming Soon</span>
+              </div>
+              <div class="detail-row" style="padding:16px;">
+                <div>
+                  <div style="font-weight:600;color:var(--primary);margin-bottom:2px;">Security Policies</div>
+                  <div style="font-size:12.5px;color:var(--muted);">Password policies, session timeouts, login attempts</div>
+                </div>
+                <span class="badge badge-warning">Coming Soon</span>
+              </div>
+              <div class="detail-row" style="padding:16px;border-bottom:none;">
+                <div>
+                  <div style="font-weight:600;color:var(--primary);margin-bottom:2px;">Email Notifications</div>
+                  <div style="font-size:12.5px;color:var(--muted);">Configure transaction alerts and email templates</div>
+                </div>
+                <span class="badge badge-warning">Coming Soon</span>
+              </div>
+            </div>
+          </div>
 
-        <a href="dashboard.html" class="button is-primary">Back to Dashboard</a>
-    </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="app.js"></script>
+  <script>
+    window.onload = () => initPage(() => {});
+  </script>
 </body>
 </html>

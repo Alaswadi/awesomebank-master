@@ -1,106 +1,163 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Credit Card Info</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
-    <style>
-        body {
-            background-color: #f4f4f9;
-        }
-
-        .container {
-            margin: 50px auto;
-            max-width: 600px;
-            text-align: center;
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-
-        .logo {
-            max-width: 150px;
-            margin: 0 auto 20px auto;
-        }
-
-        .error {
-            color: red;
-            margin-top: 10px;
-        }
-
-        .hint {
-            font-size: 0.9em;
-            color: gray;
-            margin-top: 10px;
-        }
-    </style>
-    <script>
-        async function fetchCreditCard() {
-            const token = localStorage.getItem('token');
-            const params = new URLSearchParams(window.location.search);
-            const userId = params.get('user_id');
-
-            if (!userId) {
-                alert('User ID not provided!');
-                window.location.href = 'dashboard.html';
-                return;
-            }
-
-            try {
-                const response = await fetch(`creditCard.php?user_id=${userId}`, {
-                    method: 'GET',
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'User-Agent': `Mozilla/5.0`
-                    }
-                });
-
-                const data = await response.json();
-
-                if (response.ok) {
-                    document.getElementById('credit-card').innerHTML = `
-                        <p><strong>Card Number:</strong> ${data.card_number}</p>
-                        <p><strong>Expiry Date:</strong> ${data.expiry_date}</p>
-                        <p><strong>CVV:</strong> ${data.cvv}</p>
-                    `;
-                } else {
-                    document.getElementById('error').textContent = data.message || 'Failed to fetch credit card info.';
-                }
-            } catch (error) {
-                console.error('Error fetching credit card info:', error);
-                document.getElementById('error').textContent = 'An unexpected error occurred.';
-            }
-        }
-
-        window.onload = fetchCreditCard;
-    </script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Credit Card — AwesomeBank</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="styles.css">
 </head>
-
 <body>
-    <div class="container">
-        <!-- Logo Section -->
-        <img src="logo.png" alt="Bank API Logo" class="logo">
+  <div class="app-layout">
+    <div id="sidebar-container"></div>
 
-        <!-- Development Hint -->
-        <div class="hint">
-            Development Note: This page is under development. Please come back later till we fix this User-Agent thingy.
-            🤔
+    <main class="main-content">
+      <header class="top-bar">
+        <div class="top-bar-title">
+          <h1>Credit Card</h1>
+          <p>Your card details and information</p>
+        </div>
+      </header>
+
+      <div class="page-content">
+        <div id="alert-box" style="display:none;" class="alert alert-danger mb-16"></div>
+
+        <!-- Loading -->
+        <div id="loading-state" class="card flex-center" style="min-height:200px;">
+          <div style="text-align:center;">
+            <div class="spinner" style="margin:0 auto 14px;"></div>
+            <p class="text-muted">Loading your card...</p>
+          </div>
         </div>
 
-        <!-- Title -->
-        <h1 class="title">Credit Card Info</h1>
+        <!-- Card Content -->
+        <div id="card-content" style="display:none;">
+          <div style="display:grid;grid-template-columns:auto 1fr;gap:32px;align-items:start;">
+            <!-- Card Visual -->
+            <div>
+              <div class="credit-card-visual">
+                <div class="card-chip"></div>
+                <div class="card-number-display" id="card-number">•••• •••• •••• ••••</div>
+                <div class="card-bottom-info">
+                  <div class="card-info-col">
+                    <div class="card-info-label">Expires</div>
+                    <div class="card-info-value" id="expiry-date">MM/YY</div>
+                  </div>
+                  <div class="card-info-col">
+                    <div class="card-info-label">CVV</div>
+                    <div class="card-info-value" id="cvv">•••</div>
+                  </div>
+                  <div class="card-info-col" style="text-align:right;">
+                    <div class="card-info-label">Card Holder</div>
+                    <div class="card-info-value" id="card-holder">ACCOUNT HOLDER</div>
+                  </div>
+                </div>
+              </div>
+            </div>
 
-        <!-- Error Message -->
-        <div id="error" class="error"></div>
+            <!-- Card Details -->
+            <div>
+              <div class="card mb-16">
+                <div class="card-header">
+                  <div>
+                    <div class="card-title"><i class="fas fa-list" style="margin-right:8px;color:var(--accent);"></i>Card Information</div>
+                  </div>
+                  <span class="badge badge-success"><i class="fas fa-circle" style="font-size:8px;margin-right:5px;"></i>Active</span>
+                </div>
+                <div class="detail-list">
+                  <div class="detail-row">
+                    <span class="detail-label">Card Number</span>
+                    <span class="detail-value" id="detail-card-number" style="font-family:'JetBrains Mono',monospace;">•••• •••• •••• ••••</span>
+                  </div>
+                  <div class="detail-row">
+                    <span class="detail-label">Expiry Date</span>
+                    <span class="detail-value" id="detail-expiry" style="font-family:'JetBrains Mono',monospace;">MM/YY</span>
+                  </div>
+                  <div class="detail-row">
+                    <span class="detail-label">CVV</span>
+                    <span class="detail-value" id="detail-cvv" style="font-family:'JetBrains Mono',monospace;">•••</span>
+                  </div>
+                  <div class="detail-row">
+                    <span class="detail-label">Card Type</span>
+                    <span class="detail-value">Virtual Debit Card</span>
+                  </div>
+                </div>
+              </div>
 
-        <!-- Credit Card Info -->
-        <div id="credit-card" style="margin-top: 20px;">
-            <!-- Credit card details will be displayed here -->
+              <div class="alert alert-warning">
+                <i class="fas fa-lock"></i>
+                <div>
+                  <strong>Keep your card details secure!</strong><br>
+                  <span style="font-size:12.5px;">Never share your CVV or card number with anyone. AwesomeBank will never ask for this information via email or phone.</span>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
-    </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="app.js"></script>
+  <script>
+    async function loadCard(user) {
+      const params = new URLSearchParams(window.location.search);
+      const userId = params.get('user_id') || user.user_id;
+
+      if (!userId) {
+        showAlert('User ID not provided!');
+        return;
+      }
+
+      try {
+        const response = await fetch(`creditCard.php?user_id=${userId}`);
+        const data = await response.json();
+
+        if (response.ok) {
+          displayCard(data);
+        } else {
+          showAlert(data.message || 'Failed to fetch credit card info.');
+          document.getElementById('loading-state').style.display = 'none';
+        }
+      } catch (err) {
+        showAlert('An unexpected error occurred.');
+        document.getElementById('loading-state').style.display = 'none';
+      }
+    }
+
+    function displayCard(data) {
+      document.getElementById('loading-state').style.display = 'none';
+      document.getElementById('card-content').style.display = 'block';
+
+      const cardNumber = data.card_number || '•••• •••• •••• ••••';
+      const formattedNumber = cardNumber.replace(/(\d{4})/g, '$1 ').trim();
+
+      let formattedExpiry = 'MM/YY';
+      if (data.expiry_date) {
+        const d = new Date(data.expiry_date);
+        formattedExpiry = `${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getFullYear()).slice(-2)}`;
+      }
+
+      document.getElementById('card-number').textContent = formattedNumber;
+      document.getElementById('expiry-date').textContent = formattedExpiry;
+      document.getElementById('cvv').textContent = data.cvv || '•••';
+
+      document.getElementById('detail-card-number').textContent = formattedNumber;
+      document.getElementById('detail-expiry').textContent = formattedExpiry;
+      document.getElementById('detail-cvv').textContent = data.cvv || '•••';
+    }
+
+    function showAlert(message) {
+      document.getElementById('loading-state').style.display = 'none';
+      const el = document.getElementById('alert-box');
+      el.innerHTML = `<i class="fas fa-exclamation-circle"></i> ${message}`;
+      el.style.display = 'flex';
+    }
+
+    window.onload = () => initPage(loadCard);
+  </script>
 </body>
-
 </html>

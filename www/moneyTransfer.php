@@ -26,7 +26,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $toAccountId = $input['to_account_id'] ?? null;
     $amount = $input['amount'] ?? null;
 
-    if (!$fromAccountId || !$toAccountId || !$amount || $amount <= 0) {
+    // Vulnerability #12: Negative Amount (A04)
+    // The $amount <= 0 guard has been removed. A negative transfer amount
+    // subtracts from the recipient and adds to the sender, effectively
+    // allowing a customer to steal money from another account.
+    if (!$fromAccountId || !$toAccountId || $amount === null) {
         http_response_code(400);
         echo json_encode(["message" => "Invalid input"]);
         exit;
@@ -46,6 +50,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     $senderData = $senderResult->fetch_assoc();
+
+    // Vulnerability #11: Race Condition (A04)
+    // sleep(1) widens the window between the balance read above and the UPDATE below.
+    // Two concurrent requests can both read the same (sufficient) balance,
+    // both pass the check, and both execute the deduct — spending money twice.
+    sleep(1);
 
     if (!$senderData) {
         http_response_code(404);

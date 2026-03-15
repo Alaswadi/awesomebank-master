@@ -1,164 +1,154 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Manage Customer Accounts</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
-    <style>
-        body {
-            background-color: #f4f4f9;
-        }
-
-        .container {
-            margin: 50px auto;
-            max-width: 800px;
-            text-align: center;
-        }
-
-        .logo {
-            max-width: 120px;
-            margin-bottom: 20px;
-        }
-
-        .table-container {
-            margin-top: 20px;
-        }
-
-        .error-container {
-            margin-top: 20px;
-            padding: 15px;
-            background-color: #ffdddd;
-            color: #900;
-            border: 1px solid #900;
-            border-radius: 8px;
-        }
-
-        .error-container h3 {
-            margin-top: 0;
-        }
-    </style>
-    <script>
-        async function loadAccounts() {
-            const token = localStorage.getItem('token');
-            if (!token) {
-                displayError('You are not logged in!');
-                window.location.href = 'login.html';
-                return;
-            }
-
-            try {
-                const response = await fetch('manageAccounts.php', {
-                    method: 'GET',
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                    },
-                });
-
-                const accounts = await response.json();
-
-                if (response.ok) {
-                    const tableBody = document.getElementById('account-table-body');
-                    tableBody.innerHTML = ''; // Clear the table
-
-                    accounts.forEach(account => {
-                        const row = `
-                            <tr>
-                                <td>${account.account_id}</td>
-                                <td>${account.username}</td>
-                                <td>${account.account_type}</td>
-                                <td>${parseFloat(account.balance).toFixed(2)}</td>
-                                <td>
-                                    <input type="number" class="input is-small" id="amount-${account.account_id}" placeholder="Enter Amount">
-                                    <button class="button is-small is-primary" onclick="updateBalance(${account.account_id})">Update</button>
-                                </td>
-                            </tr>
-                        `;
-                        tableBody.innerHTML += row;
-                    });
-                } else {
-                    displayError('Failed to load accounts. Server response: ' + JSON.stringify(accounts));
-                }
-            } catch (error) {
-                console.error('Error fetching accounts:', error);
-                displayError('An error occurred while loading accounts. Check the console for more details.');
-            }
-        }
-
-        async function updateBalance(accountId) {
-            const amountInput = document.getElementById(`amount-${accountId}`);
-            const amount = parseFloat(amountInput.value);
-
-            if (isNaN(amount)) {
-                displayError('Please enter a valid amount.');
-                return;
-            }
-
-            const token = localStorage.getItem('token');
-            try {
-                const response = await fetch('manageAccounts.php', {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ account_id: accountId, amount }),
-                });
-
-                const result = await response.json();
-
-                if (response.ok) {
-                    alert(result.message || 'Balance updated successfully!');
-                    loadAccounts();
-                } else {
-                    displayError('Failed to update balance. Server response: ' + JSON.stringify(result));
-                }
-            } catch (error) {
-                console.error('Error updating balance:', error);
-                displayError('An error occurred while updating balance. Check the console for more details.');
-            }
-        }
-
-        function displayError(message) {
-            const errorContainer = document.getElementById('error-container');
-            errorContainer.style.display = 'block';
-            errorContainer.innerHTML = `<h3>Error:</h3><p>${message}</p>`;
-        }
-
-        window.onload = loadAccounts;
-    </script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Manage Accounts — AwesomeBank</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="styles.css">
 </head>
-
 <body>
-    <div class="container">
-        <!-- Logo Section -->
-        <img src="logo.png" alt="Bank API Logo" class="logo">
+  <div class="app-layout">
+    <div id="sidebar-container"></div>
 
-        <!-- Title -->
-        <h1 class="title">Manage Customer Accounts</h1>
-
-        <!-- Error Container -->
-        <div id="error-container" class="error-container" style="display: none;"></div>
-
-        <!-- Accounts Table -->
-        <div class="table-container">
-            <table class="table is-fullwidth is-striped">
-                <thead>
-                    <tr>
-                        <th>Account ID</th>
-                        <th>Username</th>
-                        <th>Account Type</th>
-                        <th>Balance</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody id="account-table-body">
-                    <!-- Account rows will be dynamically inserted here -->
-                </tbody>
-            </table>
+    <main class="main-content">
+      <header class="top-bar">
+        <div class="top-bar-title">
+          <h1>Manage Accounts</h1>
+          <p>View and update all customer accounts</p>
         </div>
-    </div>
-</body>
+        <div class="top-bar-actions">
+          <span class="badge badge-accent"><i class="fas fa-crown" style="margin-right:5px;"></i>Admin</span>
+        </div>
+      </header>
 
+      <div class="page-content">
+        <div id="error-container" style="display:none;" class="alert alert-danger mb-16"></div>
+
+        <!-- Loading -->
+        <div id="loading-state" class="card flex-center" style="min-height:200px;">
+          <div style="text-align:center;">
+            <div class="spinner" style="margin:0 auto 14px;"></div>
+            <p class="text-muted">Loading accounts...</p>
+          </div>
+        </div>
+
+        <div id="accounts-table" style="display:none;">
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <div class="card-title"><i class="fas fa-university" style="margin-right:8px;color:var(--accent);"></i>Customer Accounts</div>
+                <div class="card-subtitle" id="accounts-count">0 accounts</div>
+              </div>
+            </div>
+            <div class="table-wrapper">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Account ID</th>
+                    <th>Username</th>
+                    <th>Type</th>
+                    <th>Balance</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="account-table-body"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="app.js"></script>
+  <script>
+    async function loadAccounts() {
+      const token = localStorage.getItem('token');
+      if (!token) { window.location.href = 'login.html'; return; }
+
+      try {
+        const response = await fetch('manageAccounts.php', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const accounts = await response.json();
+
+        document.getElementById('loading-state').style.display = 'none';
+
+        if (response.ok) {
+          document.getElementById('accounts-count').textContent = `${accounts.length} account${accounts.length !== 1 ? 's' : ''}`;
+          const tbody = document.getElementById('account-table-body');
+          tbody.innerHTML = '';
+
+          accounts.forEach((account, i) => {
+            const row = document.createElement('tr');
+            row.className = 'fade-in';
+            row.style.animationDelay = `${i * 0.04}s`;
+            const balance = parseFloat(account.balance).toFixed(2);
+            row.innerHTML = `
+              <td style="font-family:monospace;font-weight:600;">#${account.account_id}</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:10px;">
+                  <div style="width:32px;height:32px;background:var(--accent-light);color:var(--accent);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;">${account.username.slice(0,2).toUpperCase()}</div>
+                  <span style="font-weight:500;">${account.username}</span>
+                </div>
+              </td>
+              <td><span class="badge badge-accent">${account.account_type}</span></td>
+              <td style="font-weight:600;">$${balance}</td>
+              <td>
+                <div class="table-input-group">
+                  <input type="number" class="table-input" id="amount-${account.account_id}" placeholder="Amount">
+                  <button class="btn btn-accent btn-sm" onclick="updateBalance(${account.account_id})">
+                    <i class="fas fa-save"></i> Update
+                  </button>
+                </div>
+              </td>`;
+            tbody.appendChild(row);
+          });
+
+          document.getElementById('accounts-table').style.display = 'block';
+        } else {
+          displayError('Failed to load accounts. ' + JSON.stringify(accounts));
+        }
+      } catch (err) {
+        displayError('An error occurred while loading accounts.');
+        document.getElementById('loading-state').style.display = 'none';
+      }
+    }
+
+    async function updateBalance(accountId) {
+      const amount = parseFloat(document.getElementById(`amount-${accountId}`).value);
+      if (isNaN(amount)) { displayError('Please enter a valid amount.'); return; }
+
+      const token = localStorage.getItem('token');
+      try {
+        const response = await fetch('manageAccounts.php', {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ account_id: accountId, amount }),
+        });
+        const result = await response.json();
+
+        if (response.ok) {
+          loadAccounts();
+        } else {
+          displayError('Failed to update balance. ' + JSON.stringify(result));
+        }
+      } catch (err) {
+        displayError('An error occurred while updating balance.');
+      }
+    }
+
+    function displayError(message) {
+      const el = document.getElementById('error-container');
+      el.innerHTML = `<i class="fas fa-exclamation-circle"></i> ${message}`;
+      el.style.display = 'flex';
+    }
+
+    window.onload = () => initPage(() => loadAccounts());
+  </script>
+</body>
 </html>

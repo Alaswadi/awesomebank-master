@@ -1,113 +1,124 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fetch Exchange Rates</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
-    <style>
-        body {
-            background-color: #f4f4f9;
-        }
-
-        .container {
-            margin: 50px auto;
-            max-width: 600px;
-            text-align: center;
-        }
-
-        .logo {
-            max-width: 120px;
-            margin-bottom: 20px;
-        }
-
-        .error {
-            color: red;
-            margin-top: 10px;
-        }
-
-        .result {
-            margin-top: 20px;
-            text-align: left;
-        }
-
-        pre {
-            background: #f4f4f4;
-            padding: 10px;
-            border-radius: 5px;
-            overflow-x: auto;
-        }
-
-        .button {
-            margin-top: 20px;
-        }
-    </style>
-    <script>
-        async function fetchExchangeRates() {
-            const url = document.getElementById('url').value;
-
-            if (!url) {
-                document.getElementById('error').textContent = "URL is required!";
-                return;
-            }
-
-            try {
-                const response = await fetch('fetchExchangeRates.php', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ url })
-                });
-
-                const data = await response.json();
-
-                if (response.ok) {
-                    document.getElementById('result').innerHTML = `
-                        <h2 class="title is-4">Exchange Rates</h2>
-                        <p><strong>Base Currency:</strong> ${data.base || 'N/A'}</p>
-                        <p><strong>Rates:</strong></p>
-                        <pre>${JSON.stringify(data.rates || {}, null, 2)}</pre>
-                    `;
-                    document.getElementById('error').textContent = '';
-                } else {
-                    document.getElementById('error').textContent = data.message || "Failed to fetch exchange rates.";
-                    document.getElementById('result').innerHTML = '';
-                }
-            } catch (error) {
-                console.error('Error fetching exchange rates:', error);
-                document.getElementById('error').textContent = "An unexpected error occurred.";
-                document.getElementById('result').innerHTML = '';
-            }
-        }
-    </script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Exchange Rates — AwesomeBank</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="styles.css">
 </head>
-
 <body>
-    <div class="container">
-        <!-- Logo Section -->
-        <img src="logo.png" alt="Bank API Logo" class="logo">
+  <div class="app-layout">
+    <div id="sidebar-container"></div>
 
-        <!-- Title -->
-        <h1 class="title">Fetch Exchange Rates</h1>
-
-        <!-- Error Message -->
-        <div id="error" class="error"></div>
-
-        <!-- Input for URL -->
-        <div class="field">
-            <label class="label">Still in testing phase, don't do something stupid yet..</label>
-            <label class="label">Enter Exchange Rate API URL:</label>
-            <div class="control">
-                <input id="url" class="input" type="text" placeholder="https://api.exchangerate-api.com/v4/latest/USD">
-            </div>
+    <main class="main-content">
+      <header class="top-bar">
+        <div class="top-bar-title">
+          <h1>Exchange Rates</h1>
+          <p>Fetch live currency exchange rates</p>
         </div>
+        <div class="top-bar-actions">
+          <span class="badge badge-accent"><i class="fas fa-crown" style="margin-right:5px;"></i>Admin</span>
+        </div>
+      </header>
 
-        <!-- Fetch Button -->
-        <button class="button is-primary" onclick="fetchExchangeRates()">Fetch Rates</button>
+      <div class="page-content">
+        <div style="max-width:640px;">
 
-        <!-- Results Section -->
-        <div id="result" class="result"></div>
-    </div>
+          <div class="card mb-20">
+            <div class="card-title mb-4"><i class="fas fa-exchange-alt" style="margin-right:8px;color:var(--accent);"></i>Fetch Exchange Rates</div>
+            <div class="card-subtitle mb-16">Enter an exchange rate API endpoint URL to retrieve current rates.</div>
+
+            <div class="form-group mb-12">
+              <label class="form-label">API Endpoint URL</label>
+              <div class="form-input-wrapper">
+                <i class="fas fa-link form-input-icon"></i>
+                <input id="url" class="form-input has-icon" type="text" placeholder="https://api.exchangerate-api.com/v4/latest/USD">
+              </div>
+            </div>
+
+            <div id="error" style="display:none;" class="alert alert-danger mb-12"></div>
+
+            <button class="btn btn-accent btn-lg" onclick="fetchExchangeRates()">
+              <i class="fas fa-sync-alt"></i> Fetch Rates
+            </button>
+          </div>
+
+          <!-- Results -->
+          <div id="result-card" class="card" style="display:none;">
+            <div class="card-header">
+              <div>
+                <div class="card-title"><i class="fas fa-chart-bar" style="margin-right:8px;color:var(--success);"></i>Exchange Rates</div>
+                <div class="card-subtitle">Base currency: <strong id="base-currency">—</strong></div>
+              </div>
+              <span class="badge badge-success"><i class="fas fa-check-circle" style="margin-right:5px;"></i>Live</span>
+            </div>
+            <div class="table-wrapper">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Currency</th>
+                    <th style="text-align:right;">Rate</th>
+                  </tr>
+                </thead>
+                <tbody id="rates-body"></tbody>
+              </table>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="app.js"></script>
+  <script>
+    async function fetchExchangeRates() {
+      const url = document.getElementById('url').value;
+      const errorEl = document.getElementById('error');
+
+      errorEl.style.display = 'none';
+
+      if (!url) {
+        errorEl.innerHTML = '<i class="fas fa-exclamation-circle"></i> URL is required!';
+        errorEl.style.display = 'flex';
+        return;
+      }
+
+      try {
+        const response = await fetch('fetchExchangeRates.php', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url })
+        });
+        const data = await response.json();
+
+        if (response.ok) {
+          document.getElementById('base-currency').textContent = data.base || 'N/A';
+          const rates = data.rates || {};
+          const tbody = document.getElementById('rates-body');
+          tbody.innerHTML = Object.entries(rates).map(([currency, rate]) => `
+            <tr>
+              <td><strong>${currency}</strong></td>
+              <td style="text-align:right;font-family:monospace;font-weight:600;">${Number(rate).toFixed(4)}</td>
+            </tr>`).join('');
+          document.getElementById('result-card').style.display = 'block';
+          errorEl.style.display = 'none';
+        } else {
+          errorEl.innerHTML = `<i class="fas fa-exclamation-circle"></i> ${data.message || 'Failed to fetch exchange rates.'}`;
+          errorEl.style.display = 'flex';
+          document.getElementById('result-card').style.display = 'none';
+        }
+      } catch (err) {
+        errorEl.innerHTML = '<i class="fas fa-exclamation-circle"></i> An unexpected error occurred.';
+        errorEl.style.display = 'flex';
+      }
+    }
+
+    window.onload = () => initPage(() => {});
+  </script>
 </body>
-
 </html>

@@ -1,56 +1,37 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Welcome</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
-    <style>
-        body {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-            background-color: #f4f4f9;
-        }
-        .container {
-            text-align: center;
-        }
-        .logo {
-            max-width: 150px;
-            margin: 20px auto;
-        }
-        .welcome {
-            font-size: 2rem;
-            font-weight: bold;
-            margin-bottom: 20px;
-            color: #363636;
-        }
-        .message {
-            font-size: 1rem;
-            color: #888;
-            margin-top: -10px;
-            margin-bottom: 20px;
-        }
-        .button {
-            margin-top: 20px;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AwesomeBank — Modern Banking</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div class="container">
-        <!-- Logo Section -->
-        <img src="logo.png" alt="Bank API Logo" class="logo">
-
-        <!-- Welcome Message -->
-        <h1 class="welcome">Welcome to the Banking App</h1>
-
-        <!-- Silly Message -->
-        <p class="message">The most secure banking app ever... so we hope!</p>
-
-        <!-- Login Button -->
-        <a href="login.html" class="button is-primary is-large">Login</a>
+  <div class="landing-page">
+    <div class="landing-card fade-in">
+      <div class="landing-icon">🏦</div>
+      <h1 class="landing-heading">AwesomeBank</h1>
+      <p class="landing-desc">
+        Experience the future of banking — secure, fast, and beautifully simple.
+        Manage your finances with confidence from anywhere.
+      </p>
+      <div class="feature-grid">
+        <div class="feature-item"><div class="feature-check">✓</div><span class="feature-text">Secure Banking</span></div>
+        <div class="feature-item"><div class="feature-check">✓</div><span class="feature-text">Fast Transfers</span></div>
+        <div class="feature-item"><div class="feature-check">✓</div><span class="feature-text">24/7 Support</span></div>
+        <div class="feature-item"><div class="feature-check">✓</div><span class="feature-text">Easy Setup</span></div>
+      </div>
+      <div class="cta-buttons">
+        <a href="login.html" class="btn btn-primary btn-lg">Sign In</a>
+        <a href="signup.html" class="btn btn-ghost btn-lg">Create Account</a>
+      </div>
+      <p style="margin-top:20px;font-size:12px;color:var(--muted);">
+        Demo: <code style="background:#f0f2f7;padding:2px 6px;border-radius:4px;font-size:12px;">admin / password</code>
+      </p>
     </div>
+  </div>
 </body>
 </html>
